@@ -17,14 +17,6 @@ namespace wspr
             std::size_t decoded_bit_count,
             std::string &error) const;
 
-        /*
-         * Bounded-depth prototype used to validate path exploration before the
-         * full Fano sequential search is implemented.
-         *
-         * This explores all paths up to input_bit_limit and returns the best path
-         * by cumulative hard branch metric. It is intentionally only for short
-         * depths such as 8 or 16 bits.
-         */
         bool decode_hard_bits_bounded(
             const uint8_t *coded_bits,
             std::size_t coded_bit_count,
@@ -73,6 +65,15 @@ namespace wspr
             uint8_t expected_p1,
             uint8_t observed_p0,
             uint8_t observed_p1) const;
+
+        bool decode_hard_bits_fano_core(
+            const uint8_t *coded_bits,
+            std::size_t coded_bit_count,
+            uint8_t *decoded_bits,
+            std::size_t decoded_bit_count,
+            std::size_t input_bit_limit,
+            std::size_t max_backtracks,
+            std::string &error) const;
     };
 } // namespace wspr
 

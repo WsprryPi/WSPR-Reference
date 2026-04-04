@@ -91,13 +91,14 @@ namespace wspr
             return false;
         }
 
-        for (std::size_t i = 0; i < decoded_bit_count; ++i)
-            decoded_bits[i] = 0;
-
-        error =
-            "Full Fano sequential decoder search is not implemented yet. "
-            "Use decode_hard_bits_bounded() for short bounded-depth validation.";
-        return false;
+        return decode_hard_bits_fano_core(
+            coded_bits,
+            coded_bit_count,
+            decoded_bits,
+            decoded_bit_count,
+            decoded_bit_count,
+            5000000,
+            error);
     }
 
     bool WsprRefFanoDecoder::decode_hard_bits_bounded(
@@ -251,6 +252,51 @@ namespace wspr
             return false;
         }
 
+        return decode_hard_bits_fano_core(
+            coded_bits,
+            coded_bit_count,
+            decoded_bits,
+            decoded_bit_count,
+            input_bit_limit,
+            100000,
+            error);
+    }
+
+    bool WsprRefFanoDecoder::decode_hard_bits_fano_core(
+        const uint8_t *coded_bits,
+        std::size_t coded_bit_count,
+        uint8_t *decoded_bits,
+        std::size_t decoded_bit_count,
+        std::size_t input_bit_limit,
+        std::size_t max_backtracks,
+        std::string &error) const
+    {
+        error.clear();
+
+        if (coded_bits == nullptr || decoded_bits == nullptr)
+        {
+            error = "Null input to decode_hard_bits_fano_core().";
+            return false;
+        }
+
+        if (input_bit_limit == 0)
+        {
+            error = "input_bit_limit must be greater than zero.";
+            return false;
+        }
+
+        if (input_bit_limit > decoded_bit_count)
+        {
+            error = "input_bit_limit exceeds decoded_bit_count.";
+            return false;
+        }
+
+        if ((input_bit_limit * 2U) > coded_bit_count)
+        {
+            error = "Not enough coded bits for requested Fano decode.";
+            return false;
+        }
+
         struct StepState
         {
             uint32_t shift_register = 0;
@@ -318,7 +364,6 @@ namespace wspr
         prepare_step(0);
 
         std::size_t backtrack_count = 0;
-        constexpr std::size_t max_backtracks = 100000;
 
         while (true)
         {
@@ -331,7 +376,7 @@ namespace wspr
 
             if (backtrack_count > max_backtracks)
             {
-                error = "Exceeded backtrack limit in limited Fano search.";
+                error = "Exceeded backtrack limit in Fano search.";
                 return false;
             }
 
