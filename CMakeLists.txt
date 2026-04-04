@@ -44,6 +44,7 @@ target_compile_options(verify_vectors
 add_executable(wspr-decode
     src/decode_main.cpp
     src/wspr/wspr_ref_decoder.cpp
+    src/wspr/wspr_ref_fano.cpp
 )
 
 target_include_directories(wspr-decode
