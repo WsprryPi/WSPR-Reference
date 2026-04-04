@@ -3,6 +3,7 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <iostream>
 #include <string>
 
 namespace wspr
@@ -164,6 +165,100 @@ namespace wspr
         return true;
     }
 
+    bool WsprRefUnpacker::decode_type2_power_and_offset(
+        uint32_t low_bits,
+        int &power_dbm,
+        uint32_t &offset) const
+    {
+        static constexpr int valid_dbm[] = {
+            0, 3, 7, 10, 13, 17, 20, 23, 27, 30, 33, 37,
+            40, 43, 47, 50, 53, 57, 60};
+
+        for (int p : valid_dbm)
+        {
+            if (low_bits == static_cast<uint32_t>(p + 1))
+            {
+                power_dbm = p;
+                offset = 1;
+                return true;
+            }
+
+            if (low_bits == static_cast<uint32_t>(p + 2))
+            {
+                power_dbm = p;
+                offset = 2;
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    std::string WsprRefUnpacker::decode_type2_suffix_one_char(
+        uint32_t value) const
+    {
+        if (value <= 9U)
+            return "/" + std::string(1, static_cast<char>('0' + value));
+
+        if (value >= 10U && value <= 35U)
+            return "/" + std::string(1, static_cast<char>('A' + (value - 10U)));
+
+        if (value == 38U)
+            return "/?";
+
+        return {};
+    }
+
+    std::string WsprRefUnpacker::decode_type2_suffix_two_digit(
+        uint32_t value) const
+    {
+        const uint32_t number = value;
+
+        if (number > 99U)
+            return {};
+
+        std::string out = "/";
+        out.push_back(static_cast<char>('0' + (number / 10U)));
+        out.push_back(static_cast<char>('0' + (number % 10U)));
+        return out;
+    }
+
+    std::string WsprRefUnpacker::decode_type2_prefix(
+        uint32_t value) const
+    {
+        auto decode37 = [](uint32_t v) -> char
+        {
+            if (v <= 9U)
+                return static_cast<char>('0' + v);
+
+            if (v >= 10U && v <= 35U)
+                return static_cast<char>('A' + (v - 10U));
+
+            return ' ';
+        };
+
+        char prefix[4] = {};
+        prefix[2] = decode37(value % 37U);
+        value /= 37U;
+        prefix[1] = decode37(value % 37U);
+        value /= 37U;
+        prefix[0] = decode37(value % 37U);
+        prefix[3] = '\0';
+
+        std::string out(prefix, 3);
+
+        while (!out.empty() && out.front() == ' ')
+            out.erase(out.begin());
+
+        while (!out.empty() && out.back() == ' ')
+            out.pop_back();
+
+        if (out.empty())
+            return {};
+
+        return out + "/";
+    }
+
     bool WsprRefUnpacker::unpack_type2(
         const uint8_t *payload_bits,
         std::size_t payload_bit_count,
@@ -185,21 +280,102 @@ namespace wspr
 
         const uint32_t n = extract_n(payload_bits, payload_bit_count);
         (void)n;
+
         const uint32_t m = extract_m(payload_bits, payload_bit_count);
 
-        // For now: we do NOT decode callsign (hashed)
+        if (m < 64U)
+        {
+            message.error = "Type 2 payload is below minimum range.";
+            return false;
+        }
+
+        const uint32_t raw = m - 64U;
+        const uint32_t low_bits = raw % 128U;
+        const uint32_t ext_field = raw / 128U;
+
+        uint32_t offset = 0;
+
+        std::cout
+            << "m=" << m
+            << " raw=" << raw
+            << " low_bits=" << low_bits
+            << " ext_field=" << ext_field
+            << " offset=" << offset
+            << "\n";
+
+        if (!decode_type2_power_and_offset(low_bits, message.power_dbm, offset))
+        {
+            message.error = "Failed to decode Type 2 power field.";
+            return false;
+        }
+
+        std::string extra;
+
+        // One-character suffix: /7, /P, etc.
+        if (ext_field >= 27232U && ext_field <= 27270U)
+        {
+            if (offset != 2U)
+            {
+                message.error = "Invalid offset for Type 2 one-character suffix.";
+                return false;
+            }
+
+            extra = decode_type2_suffix_one_char(ext_field - 27232U);
+        }
+        // Two-digit numeric suffix: /00 .. /99
+        if (ext_field >= 27258U && ext_field <= 27357U)
+        {
+            if (offset != 2U)
+            {
+                message.error = "Invalid offset for Type 2 two-digit suffix.";
+                return false;
+            }
+
+            extra = decode_type2_suffix_two_digit(ext_field - 27258U);
+        }
+        // One-character suffix: /7, /P, etc.
+        else if (ext_field >= 27232U && ext_field <= 27270U)
+        {
+            if (offset != 2U)
+            {
+                message.error = "Invalid offset for Type 2 one-character suffix.";
+                return false;
+            }
+
+            extra = decode_type2_suffix_one_char(ext_field - 27232U);
+        }
+        // Prefix: W1/, DL/, etc.
+        else if (ext_field <= 32767U)
+        {
+            uint32_t prefix_value = ext_field;
+
+            if (offset == 2U)
+                prefix_value += 32768U;
+            else if (offset != 1U)
+            {
+                message.error = "Invalid offset for Type 2 prefix.";
+                return false;
+            }
+
+            extra = decode_type2_prefix(prefix_value);
+        }
+        else
+        {
+            message.error = "Unrecognized Type 2 extension field.";
+            return false;
+        }
+
+        if (extra.empty())
+        {
+            message.error = "Failed to decode Type 2 extension.";
+            return false;
+        }
+
         message.callsign = "<hashed>";
-
-        const uint32_t power_field = (m - 64U) % 128U;
-        const uint32_t ext_field = (m - 64U) / 128U;
-
-        message.power_dbm = static_cast<int>(power_field);
-
-        // Very simple initial mapping (will refine later)
-        message.extra = std::to_string(ext_field);
-
+        message.extra = extra;
         message.valid = true;
         message.type = WsprMessageType::Type2;
+        message.is_partial = true;
 
         return true;
     }

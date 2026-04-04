@@ -52,6 +52,20 @@ namespace wspr
             WsprDecodedMessage &message) const;
 
     private:
+        bool decode_type2_power_and_offset(
+            uint32_t low_bits,
+            int &power_dbm,
+            uint32_t &offset) const;
+
+        std::string decode_type2_suffix_one_char(
+            uint32_t value) const;
+
+        std::string decode_type2_suffix_two_digit(
+            uint32_t value) const;
+
+        std::string decode_type2_prefix(
+            uint32_t value) const;
+
         uint32_t extract_n(
             const uint8_t *payload_bits,
             std::size_t payload_bit_count) const;
