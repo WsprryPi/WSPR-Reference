@@ -55,11 +55,8 @@ namespace
         return false;
     }
 
-    void print_message(
-        const std::string &label,
-        const wspr::WsprDecodedMessage &message)
+    void print_message(const wspr::WsprDecodedMessage &message)
     {
-        std::cout << label << ":\n";
         std::cout << "  Type:     ";
 
         switch (message.type)
@@ -126,8 +123,13 @@ int main(int argc, char **argv)
         return 1;
     }
 
-    print_message("First decoded message", msg1);
-    print_message("Second decoded message", msg2);
+    std::cout << "Decoded input 1\n";
+    std::cout << "===============\n";
+    print_message(msg1);
+
+    std::cout << "Decoded input 2\n";
+    std::cout << "===============\n";
+    print_message(msg2);
 
     correlator.add_message(msg1);
     correlator.add_message(msg2);
@@ -135,7 +137,9 @@ int main(int argc, char **argv)
     wspr::WsprDecodedMessage resolved;
     if (correlator.try_resolve_last(resolved))
     {
-        print_message("Correlated result", resolved);
+        std::cout << "Correlated result\n";
+        std::cout << "=================\n";
+        print_message(resolved);
         return 0;
     }
 
