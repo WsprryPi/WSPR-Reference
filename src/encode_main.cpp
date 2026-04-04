@@ -4,6 +4,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <cstring>
+#include <exception>
 #include <iostream>
 #include <string>
 
@@ -36,23 +37,53 @@ namespace
 
         return "TYPE1";
     }
+
+    std::string symbols_to_string(const uint8_t *symbols, std::size_t count)
+    {
+        std::string out;
+        out.reserve(count);
+
+        for (std::size_t i = 0; i < count; ++i)
+            out.push_back(static_cast<char>('0' + symbols[i]));
+
+        return out;
+    }
 } // namespace
 
 int main(int argc, char **argv)
 {
-    if (argc != 4)
+    bool quiet = false;
+    int argi = 1;
+
+    while (argi < argc)
     {
-        std::cerr << "Usage: wspr-encode <callsign> <locator> <power_dbm>\n";
+        const std::string arg = argv[argi];
+
+        if (arg == "--quiet" || arg == "--symbols-only")
+        {
+            quiet = true;
+            ++argi;
+            continue;
+        }
+
+        break;
+    }
+
+    if ((argc - argi) != 3)
+    {
+        std::cerr
+            << "Usage: wspr-encode [--quiet|--symbols-only] "
+            << "<callsign> <locator> <power_dbm>\n";
         return 1;
     }
 
-    const std::string callsign = argv[1];
-    const std::string locator = argv[2];
+    const std::string callsign = argv[argi];
+    const std::string locator = argv[argi + 1];
 
     int power_dbm = 0;
     try
     {
-        power_dbm = std::stoi(argv[3]);
+        power_dbm = std::stoi(argv[argi + 2]);
     }
     catch (const std::exception &)
     {
@@ -77,15 +108,20 @@ int main(int argc, char **argv)
         return 1;
     }
 
+    const std::string symbol_text =
+        symbols_to_string(symbols, wspr::WSPR_SYMBOL_COUNT);
+
+    if (quiet)
+    {
+        std::cout << symbol_text << "\n";
+        return 0;
+    }
+
     std::cout << "Type: " << detect_type(callsign, locator) << "\n";
     std::cout << "Callsign: " << callsign << "\n";
     std::cout << "Locator: " << locator << "\n";
     std::cout << "Power: " << power_dbm << " dBm\n";
-    std::cout << "Symbols: ";
+    std::cout << "Symbols: " << symbol_text << "\n";
 
-    for (std::size_t i = 0; i < wspr::WSPR_SYMBOL_COUNT; ++i)
-        std::cout << static_cast<unsigned>(symbols[i]);
-
-    std::cout << "\n";
     return 0;
 }

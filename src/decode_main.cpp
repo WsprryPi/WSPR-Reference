@@ -31,7 +31,8 @@ namespace
         std::cout << "  Callsign: " << message.callsign << "\n";
         std::cout << "  Extra:    " << message.extra << "\n";
         std::cout << "  Power:    " << message.power_dbm << "\n";
-        std::cout << "  Partial:  " << (message.is_partial ? "true" : "false") << "\n";
+        std::cout << "  Partial:  "
+                  << (message.is_partial ? "true" : "false") << "\n";
     }
 
     void print_type3_message(const wspr::WsprDecodedMessage &message)
@@ -41,15 +42,68 @@ namespace
         std::cout << "  Hash:     " << message.callsign_hash << "\n";
         std::cout << "  Locator:  " << message.locator << "\n";
         std::cout << "  Power:    " << message.power_dbm << "\n";
-        std::cout << "  Partial:  " << (message.is_partial ? "true" : "false") << "\n";
+        std::cout << "  Partial:  "
+                  << (message.is_partial ? "true" : "false") << "\n";
+    }
+
+    void print_quiet_message(const wspr::WsprDecodedMessage &message)
+    {
+        switch (message.type)
+        {
+        case wspr::WsprMessageType::Type1:
+            std::cout
+                << "TYPE1 "
+                << message.callsign << " "
+                << message.locator << " "
+                << message.power_dbm << "\n";
+            break;
+
+        case wspr::WsprMessageType::Type2:
+            std::cout
+                << "TYPE2 "
+                << message.callsign << " "
+                << message.extra << " "
+                << message.power_dbm << "\n";
+            break;
+
+        case wspr::WsprMessageType::Type3:
+            std::cout
+                << "TYPE3 "
+                << message.callsign << " "
+                << message.callsign_hash << " "
+                << message.locator << " "
+                << message.power_dbm << "\n";
+            break;
+
+        default:
+            std::cout << "UNKNOWN\n";
+            break;
+        }
     }
 } // namespace
 
 int main(int argc, char **argv)
 {
-    if (argc != 2)
+    bool quiet = false;
+    int argi = 1;
+
+    while (argi < argc)
     {
-        std::cerr << "Usage: wspr-decode <162-symbol-string>\n";
+        const std::string arg = argv[argi];
+
+        if (arg == "--quiet")
+        {
+            quiet = true;
+            ++argi;
+            continue;
+        }
+
+        break;
+    }
+
+    if ((argc - argi) != 1)
+    {
+        std::cerr << "Usage: wspr-decode [--quiet] <162-symbol-string>\n";
         return 1;
     }
 
@@ -62,7 +116,7 @@ int main(int argc, char **argv)
 
     std::string error;
 
-    if (!decoder.symbols_to_bits(argv[1], g_bits, error))
+    if (!decoder.symbols_to_bits(argv[argi], g_bits, error))
     {
         std::cerr << "Decode error: " << error << "\n";
         return 1;
@@ -70,23 +124,11 @@ int main(int argc, char **argv)
 
     decoder.deinterleave_bits(g_bits, deinterleaved_bits);
 
-    if (!decoder.decode_payload_bits_from_symbols(argv[1], payload_bits, error))
+    if (!decoder.decode_payload_bits_from_symbols(argv[argi], payload_bits, error))
     {
         std::cerr << "Payload decode error: " << error << "\n";
         return 1;
     }
-
-    std::cout << "Recovered g bits:\n";
-    for (std::size_t i = 0; i < wspr::WSPR_BIT_COUNT; ++i)
-        std::cout << static_cast<unsigned>(g_bits[i]);
-    std::cout << "\n";
-
-    std::cout << "Deinterleaved bits:\n";
-    for (std::size_t i = 0; i < wspr::WSPR_BIT_COUNT; ++i)
-        std::cout << static_cast<unsigned>(deinterleaved_bits[i]);
-    std::cout << "\n";
-
-    print_payload_bits(payload_bits);
 
     wspr::WsprDecodedMessage message;
 
@@ -95,6 +137,23 @@ int main(int argc, char **argv)
             wspr::WSPR_PAYLOAD_BIT_COUNT,
             message))
     {
+        if (quiet)
+        {
+            print_quiet_message(message);
+            return 0;
+        }
+
+        std::cout << "Recovered g bits:\n";
+        for (std::size_t i = 0; i < wspr::WSPR_BIT_COUNT; ++i)
+            std::cout << static_cast<unsigned>(g_bits[i]);
+        std::cout << "\n";
+
+        std::cout << "Deinterleaved bits:\n";
+        for (std::size_t i = 0; i < wspr::WSPR_BIT_COUNT; ++i)
+            std::cout << static_cast<unsigned>(deinterleaved_bits[i]);
+        std::cout << "\n";
+
+        print_payload_bits(payload_bits);
         print_type1_message(message);
         return 0;
     }
@@ -104,6 +163,23 @@ int main(int argc, char **argv)
             wspr::WSPR_PAYLOAD_BIT_COUNT,
             message))
     {
+        if (quiet)
+        {
+            print_quiet_message(message);
+            return 0;
+        }
+
+        std::cout << "Recovered g bits:\n";
+        for (std::size_t i = 0; i < wspr::WSPR_BIT_COUNT; ++i)
+            std::cout << static_cast<unsigned>(g_bits[i]);
+        std::cout << "\n";
+
+        std::cout << "Deinterleaved bits:\n";
+        for (std::size_t i = 0; i < wspr::WSPR_BIT_COUNT; ++i)
+            std::cout << static_cast<unsigned>(deinterleaved_bits[i]);
+        std::cout << "\n";
+
+        print_payload_bits(payload_bits);
         print_type2_message(message);
         return 0;
     }
@@ -113,10 +189,29 @@ int main(int argc, char **argv)
             wspr::WSPR_PAYLOAD_BIT_COUNT,
             message))
     {
+        if (quiet)
+        {
+            print_quiet_message(message);
+            return 0;
+        }
+
+        std::cout << "Recovered g bits:\n";
+        for (std::size_t i = 0; i < wspr::WSPR_BIT_COUNT; ++i)
+            std::cout << static_cast<unsigned>(g_bits[i]);
+        std::cout << "\n";
+
+        std::cout << "Deinterleaved bits:\n";
+        for (std::size_t i = 0; i < wspr::WSPR_BIT_COUNT; ++i)
+            std::cout << static_cast<unsigned>(deinterleaved_bits[i]);
+        std::cout << "\n";
+
+        print_payload_bits(payload_bits);
         print_type3_message(message);
         return 0;
     }
 
-    std::cout << "\nNo message type unpack succeeded.\n";
+    if (!quiet)
+        std::cout << "\nNo message type unpack succeeded.\n";
+
     return 0;
 }
