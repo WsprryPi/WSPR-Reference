@@ -1,6 +1,8 @@
 #include "wspr/wspr_ref_encoder.hpp"
 #include "wspr/wspr_constants.hpp"
 
+#include <nlohmann/json.hpp>
+
 #include <cstddef>
 #include <cstdint>
 #include <cstring>
@@ -10,6 +12,8 @@
 
 namespace
 {
+    using json = nlohmann::json;
+
     bool validate_symbol_stream(const uint8_t *symbols, std::size_t count)
     {
         if (symbols == nullptr)
@@ -53,6 +57,7 @@ namespace
 int main(int argc, char **argv)
 {
     bool quiet = false;
+    bool json_mode = false;
     int argi = 1;
 
     while (argi < argc)
@@ -66,13 +71,26 @@ int main(int argc, char **argv)
             continue;
         }
 
+        if (arg == "--json")
+        {
+            json_mode = true;
+            ++argi;
+            continue;
+        }
+
         break;
+    }
+
+    if (quiet && json_mode)
+    {
+        std::cerr << "Use either --quiet/--symbols-only or --json, not both.\n";
+        return 1;
     }
 
     if ((argc - argi) != 3)
     {
         std::cerr
-            << "Usage: wspr-encode [--quiet|--symbols-only] "
+            << "Usage: wspr-encode [--quiet|--symbols-only|--json] "
             << "<callsign> <locator> <power_dbm>\n";
         return 1;
     }
@@ -108,8 +126,22 @@ int main(int argc, char **argv)
         return 1;
     }
 
+    const std::string type = detect_type(callsign, locator);
     const std::string symbol_text =
         symbols_to_string(symbols, wspr::WSPR_SYMBOL_COUNT);
+
+    if (json_mode)
+    {
+        json j;
+        j["type"] = type;
+        j["callsign"] = callsign;
+        j["locator"] = locator;
+        j["power_dbm"] = power_dbm;
+        j["symbols"] = symbol_text;
+
+        std::cout << j.dump(2) << "\n";
+        return 0;
+    }
 
     if (quiet)
     {
@@ -117,7 +149,7 @@ int main(int argc, char **argv)
         return 0;
     }
 
-    std::cout << "Type: " << detect_type(callsign, locator) << "\n";
+    std::cout << "Type: " << type << "\n";
     std::cout << "Callsign: " << callsign << "\n";
     std::cout << "Locator: " << locator << "\n";
     std::cout << "Power: " << power_dbm << " dBm\n";
