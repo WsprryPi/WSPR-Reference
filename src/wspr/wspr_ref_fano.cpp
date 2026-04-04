@@ -112,4 +112,22 @@ namespace wspr
             "before attempting path exploration.";
         return false;
     }
+
+    void WsprRefFanoDecoder::debug_expected_parity(
+        uint32_t shift_register,
+        uint8_t input_bit,
+        uint8_t &p0,
+        uint8_t &p1) const
+    {
+        expected_parity(shift_register, input_bit, p0, p1);
+    }
+
+    int WsprRefFanoDecoder::debug_branch_metric_hard(
+        uint8_t expected_p0,
+        uint8_t expected_p1,
+        uint8_t observed_p0,
+        uint8_t observed_p1) const
+    {
+        return branch_metric_hard(expected_p0, expected_p1, observed_p0, observed_p1);
+    }
 } // namespace wspr

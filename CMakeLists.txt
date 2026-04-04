@@ -58,3 +58,20 @@ target_compile_options(wspr-decode
         -Wextra
         -Wpedantic
 )
+
+add_executable(fano_sanity
+    tests/fano_sanity.cpp
+    src/wspr/wspr_ref_fano.cpp
+)
+
+target_include_directories(fano_sanity
+    PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/src
+)
+
+target_compile_options(fano_sanity
+    PRIVATE
+        -Wall
+        -Wextra
+        -Wpedantic
+)
