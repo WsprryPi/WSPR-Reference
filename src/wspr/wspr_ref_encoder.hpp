@@ -4,10 +4,10 @@
 #include <cstddef>
 #include <cstdint>
 
+#include "wspr_constants.hpp"
+
 namespace wspr
 {
-constexpr std::size_t WSPR_SYMBOL_COUNT = 162;
-constexpr std::size_t WSPR_BIT_COUNT = 162;
 
 class WsprRefEncoder
 {

@@ -584,20 +584,12 @@ namespace wspr
         std::memcpy(s, d, WSPR_BIT_COUNT);
     }
 
-    void WsprRefEncoder::wspr_merge_sync_vector(const uint8_t *g, uint8_t *symbols) const
+    void WsprRefEncoder::wspr_merge_sync_vector(
+        const uint8_t *g,
+        uint8_t *symbols) const
     {
-        static constexpr uint8_t sync_vector[WSPR_SYMBOL_COUNT] = {
-            1, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 1, 1, 0, 0, 0, 1, 0, 0,
-            1, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 1, 0, 0,
-            0, 0, 0, 0, 1, 0, 1, 1, 0, 0, 1, 1, 0, 1, 0, 0, 0, 1, 1, 0, 1,
-            0, 0, 0, 0, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 1, 0, 0, 1, 0,
-            1, 1, 0, 0, 0, 1, 1, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1,
-            0, 0, 1, 0, 0, 1, 1, 1, 0, 1, 1, 0, 0, 1, 1, 0, 1, 0, 0, 0, 1,
-            1, 1, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0,
-            1, 1, 0, 1, 0, 1, 1, 0, 0, 0, 1, 1, 0, 0, 0};
-
-        for (uint8_t i = 0; i < WSPR_SYMBOL_COUNT; i++)
-            symbols[i] = sync_vector[i] + (2 * g[i]);
+        for (std::size_t i = 0; i < WSPR_SYMBOL_COUNT; ++i)
+            symbols[i] = SYNC_VECTOR[i] + (2 * g[i]);
     }
 
     void WsprRefEncoder::convolve(const uint8_t *c, uint8_t *s, uint8_t message_size, uint8_t bit_size) const
