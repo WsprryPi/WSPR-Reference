@@ -1,11 +1,7 @@
-#include "wspr/wspr_ref_encoder.hpp"
-#include "wspr/wspr_constants.hpp"
+#include "wspr/wspr_ref_api.hpp"
 
 #include <nlohmann/json.hpp>
 
-#include <cstddef>
-#include <cstdint>
-#include <cstring>
 #include <exception>
 #include <iostream>
 #include <string>
@@ -13,45 +9,6 @@
 namespace
 {
     using json = nlohmann::json;
-
-    bool validate_symbol_stream(const uint8_t *symbols, std::size_t count)
-    {
-        if (symbols == nullptr)
-            return false;
-
-        for (std::size_t i = 0; i < count; ++i)
-        {
-            if (symbols[i] > 3U)
-                return false;
-        }
-
-        return true;
-    }
-
-    std::string detect_type(const std::string &callsign, const std::string &locator)
-    {
-        if (!callsign.empty() && callsign.front() == '<' && callsign.back() == '>')
-            return "TYPE3";
-
-        if (callsign.find('/') != std::string::npos)
-            return "TYPE2";
-
-        if (locator.size() == 6)
-            return "TYPE3";
-
-        return "TYPE1";
-    }
-
-    std::string symbols_to_string(const uint8_t *symbols, std::size_t count)
-    {
-        std::string out;
-        out.reserve(count);
-
-        for (std::size_t i = 0; i < count; ++i)
-            out.push_back(static_cast<char>('0' + symbols[i]));
-
-        return out;
-    }
 } // namespace
 
 int main(int argc, char **argv)
@@ -109,35 +66,23 @@ int main(int argc, char **argv)
         return 1;
     }
 
-    wspr::WsprRefEncoder encoder;
+    const wspr::WsprEncodeResult result =
+        wspr::encode_message(callsign, locator, power_dbm);
 
-    uint8_t symbols[wspr::WSPR_SYMBOL_COUNT] = {};
-    std::memset(symbols, 0, sizeof(symbols));
-
-    encoder.wspr_encode(
-        callsign.c_str(),
-        locator.c_str(),
-        static_cast<int8_t>(power_dbm),
-        symbols);
-
-    if (!validate_symbol_stream(symbols, wspr::WSPR_SYMBOL_COUNT))
+    if (!result.ok)
     {
-        std::cerr << "Generated symbol stream is invalid.\n";
+        std::cerr << result.error << "\n";
         return 1;
     }
-
-    const std::string type = detect_type(callsign, locator);
-    const std::string symbol_text =
-        symbols_to_string(symbols, wspr::WSPR_SYMBOL_COUNT);
 
     if (json_mode)
     {
         json j;
-        j["type"] = type;
-        j["callsign"] = callsign;
-        j["locator"] = locator;
-        j["power_dbm"] = power_dbm;
-        j["symbols"] = symbol_text;
+        j["type"] = result.type;
+        j["callsign"] = result.callsign;
+        j["locator"] = result.locator;
+        j["power_dbm"] = result.power_dbm;
+        j["symbols"] = result.symbols;
 
         std::cout << j.dump(2) << "\n";
         return 0;
@@ -145,15 +90,15 @@ int main(int argc, char **argv)
 
     if (quiet)
     {
-        std::cout << symbol_text << "\n";
+        std::cout << result.symbols << "\n";
         return 0;
     }
 
-    std::cout << "Type: " << type << "\n";
-    std::cout << "Callsign: " << callsign << "\n";
-    std::cout << "Locator: " << locator << "\n";
-    std::cout << "Power: " << power_dbm << " dBm\n";
-    std::cout << "Symbols: " << symbol_text << "\n";
+    std::cout << "Type: " << result.type << "\n";
+    std::cout << "Callsign: " << result.callsign << "\n";
+    std::cout << "Locator: " << result.locator << "\n";
+    std::cout << "Power: " << result.power_dbm << " dBm\n";
+    std::cout << "Symbols: " << result.symbols << "\n";
 
     return 0;
 }

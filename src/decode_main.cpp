@@ -1,4 +1,5 @@
 #include "wspr/wspr_ref_decoder.hpp"
+#include "wspr/wspr_ref_api.hpp"
 #include "wspr/wspr_ref_unpack.hpp"
 #include "wspr/wspr_constants.hpp"
 
@@ -179,8 +180,6 @@ int main(int argc, char **argv)
     }
 
     wspr::WsprRefDecoder decoder;
-    wspr::WsprRefUnpacker unpacker;
-
     uint8_t g_bits[wspr::WSPR_BIT_COUNT] = {};
     uint8_t deinterleaved_bits[wspr::WSPR_BIT_COUNT] = {};
     uint8_t payload_bits[wspr::WSPR_PAYLOAD_BIT_COUNT] = {};
@@ -203,10 +202,7 @@ int main(int argc, char **argv)
 
     wspr::WsprDecodedMessage message;
 
-    if (unpacker.unpack_type1(
-            payload_bits,
-            wspr::WSPR_PAYLOAD_BIT_COUNT,
-            message))
+    if (wspr::decode_symbols(argv[argi], message, error))
     {
         if (json_mode)
         {
@@ -231,71 +227,20 @@ int main(int argc, char **argv)
         std::cout << "\n";
 
         print_payload_bits(payload_bits);
-        print_type1_message(message);
-        return 0;
-    }
-
-    if (unpacker.unpack_type2(
-            payload_bits,
-            wspr::WSPR_PAYLOAD_BIT_COUNT,
-            message))
-    {
-        if (json_mode)
+        switch (message.type)
         {
-            std::cout << message_to_json(message).dump(2) << "\n";
-            return 0;
+        case wspr::WsprMessageType::Type1:
+            print_type1_message(message);
+            break;
+        case wspr::WsprMessageType::Type2:
+            print_type2_message(message);
+            break;
+        case wspr::WsprMessageType::Type3:
+            print_type3_message(message);
+            break;
+        default:
+            break;
         }
-
-        if (quiet)
-        {
-            print_quiet_message(message);
-            return 0;
-        }
-
-        std::cout << "Recovered g bits:\n";
-        for (std::size_t i = 0; i < wspr::WSPR_BIT_COUNT; ++i)
-            std::cout << static_cast<unsigned>(g_bits[i]);
-        std::cout << "\n";
-
-        std::cout << "Deinterleaved bits:\n";
-        for (std::size_t i = 0; i < wspr::WSPR_BIT_COUNT; ++i)
-            std::cout << static_cast<unsigned>(deinterleaved_bits[i]);
-        std::cout << "\n";
-
-        print_payload_bits(payload_bits);
-        print_type2_message(message);
-        return 0;
-    }
-
-    if (unpacker.unpack_type3(
-            payload_bits,
-            wspr::WSPR_PAYLOAD_BIT_COUNT,
-            message))
-    {
-        if (json_mode)
-        {
-            std::cout << message_to_json(message).dump(2) << "\n";
-            return 0;
-        }
-
-        if (quiet)
-        {
-            print_quiet_message(message);
-            return 0;
-        }
-
-        std::cout << "Recovered g bits:\n";
-        for (std::size_t i = 0; i < wspr::WSPR_BIT_COUNT; ++i)
-            std::cout << static_cast<unsigned>(g_bits[i]);
-        std::cout << "\n";
-
-        std::cout << "Deinterleaved bits:\n";
-        for (std::size_t i = 0; i < wspr::WSPR_BIT_COUNT; ++i)
-            std::cout << static_cast<unsigned>(deinterleaved_bits[i]);
-        std::cout << "\n";
-
-        print_payload_bits(payload_bits);
-        print_type3_message(message);
         return 0;
     }
 

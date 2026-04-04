@@ -1,63 +1,13 @@
-#include "wspr/wspr_ref_correlator.hpp"
-#include "wspr/wspr_ref_decoder.hpp"
-#include "wspr/wspr_ref_unpack.hpp"
-#include "wspr/wspr_constants.hpp"
+#include "wspr/wspr_ref_api.hpp"
 
 #include <nlohmann/json.hpp>
 
-#include <cstddef>
-#include <cstdint>
 #include <iostream>
 #include <string>
 
 namespace
 {
     using json = nlohmann::json;
-
-    bool decode_one(
-        const std::string &symbol_text,
-        wspr::WsprRefDecoder &decoder,
-        wspr::WsprRefUnpacker &unpacker,
-        wspr::WsprDecodedMessage &message,
-        std::string &error)
-    {
-        uint8_t payload_bits[wspr::WSPR_PAYLOAD_BIT_COUNT] = {};
-
-        if (!decoder.decode_payload_bits_from_symbols(
-                symbol_text,
-                payload_bits,
-                error))
-        {
-            return false;
-        }
-
-        if (unpacker.unpack_type1(
-                payload_bits,
-                wspr::WSPR_PAYLOAD_BIT_COUNT,
-                message))
-        {
-            return true;
-        }
-
-        if (unpacker.unpack_type2(
-                payload_bits,
-                wspr::WSPR_PAYLOAD_BIT_COUNT,
-                message))
-        {
-            return true;
-        }
-
-        if (unpacker.unpack_type3(
-                payload_bits,
-                wspr::WSPR_PAYLOAD_BIT_COUNT,
-                message))
-        {
-            return true;
-        }
-
-        error = "No unpacker recognized the payload.";
-        return false;
-    }
 
     void print_message(const wspr::WsprDecodedMessage &message)
     {
@@ -267,49 +217,29 @@ int main(int argc, char **argv)
         return 1;
     }
 
-    const std::string symbols1 = argv[argi];
-    const std::string symbols2 = argv[argi + 1];
+    const wspr::WsprCorrelateResult result =
+        wspr::correlate_symbol_streams(argv[argi], argv[argi + 1]);
 
-    wspr::WsprRefDecoder decoder;
-    wspr::WsprRefUnpacker unpacker;
-    wspr::WsprRefCorrelator correlator;
-
-    wspr::WsprDecodedMessage msg1;
-    wspr::WsprDecodedMessage msg2;
-    std::string error;
-
-    if (!decode_one(symbols1, decoder, unpacker, msg1, error))
+    if (!result.ok)
     {
-        std::cerr << "Failed to decode first message: " << error << "\n";
+        std::cerr << result.error << "\n";
         return 1;
     }
-
-    if (!decode_one(symbols2, decoder, unpacker, msg2, error))
-    {
-        std::cerr << "Failed to decode second message: " << error << "\n";
-        return 1;
-    }
-
-    correlator.add_message(msg1);
-    correlator.add_message(msg2);
-
-    wspr::WsprDecodedMessage resolved;
-    const bool correlated = correlator.try_resolve_last(resolved);
 
     if (json_mode)
     {
         json j;
 
-        if (correlated)
+        if (result.correlated)
         {
-            j = message_to_json(resolved);
+            j = message_to_json(result.resolved);
             j["status"] = "CORRELATED";
         }
         else
         {
             j["status"] = "UNCORRELATED";
-            j["message1"] = message_to_json(msg1);
-            j["message2"] = message_to_json(msg2);
+            j["message1"] = message_to_json(result.message1);
+            j["message2"] = message_to_json(result.message2);
         }
 
         std::cout << j.dump(2) << "\n";
@@ -318,30 +248,30 @@ int main(int argc, char **argv)
 
     if (quiet)
     {
-        if (correlated)
+        if (result.correlated)
         {
-            print_quiet_correlated(resolved);
+            print_quiet_correlated(result.resolved);
             return 0;
         }
 
-        print_quiet_uncorrelated("UNCORRELATED1", msg1);
-        print_quiet_uncorrelated("UNCORRELATED2", msg2);
+        print_quiet_uncorrelated("UNCORRELATED1", result.message1);
+        print_quiet_uncorrelated("UNCORRELATED2", result.message2);
         return 0;
     }
 
     std::cout << "Decoded input 1\n";
     std::cout << "===============\n";
-    print_message(msg1);
+    print_message(result.message1);
 
     std::cout << "Decoded input 2\n";
     std::cout << "===============\n";
-    print_message(msg2);
+    print_message(result.message2);
 
-    if (correlated)
+    if (result.correlated)
     {
         std::cout << "Correlated result\n";
         std::cout << "=================\n";
-        print_message(resolved);
+        print_message(result.resolved);
         return 0;
     }
 
