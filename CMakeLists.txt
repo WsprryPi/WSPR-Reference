@@ -213,3 +213,23 @@ target_compile_options(payload_compare_roundtrip
         -Wextra
         -Wpedantic
 )
+
+add_executable(unpack_type1_roundtrip
+    tests/unpack_type1_roundtrip.cpp
+    src/wspr/wspr_ref_encoder.cpp
+    src/wspr/wspr_ref_decoder.cpp
+    src/wspr/wspr_ref_fano.cpp
+    src/wspr/wspr_ref_unpack.cpp
+)
+
+target_include_directories(unpack_type1_roundtrip
+    PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/src
+)
+
+target_compile_options(unpack_type1_roundtrip
+    PRIVATE
+        -Wall
+        -Wextra
+        -Wpedantic
+)
