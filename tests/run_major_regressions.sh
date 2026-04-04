@@ -10,6 +10,34 @@ TYPE2_SUFFIX_SYMBOLS="3302200210201130221003211330202002300321200222101302330300
 TYPE2_PREFIX_SYMBOLS="330220221022113022100123133020000030010122022010130233230021323022033232301212012032132003303210223022021223001110330213210021112200012120132000202330303320031022"
 TYPE3_SYMBOLS="332002201020111022320121311022222212032302022230130033230021301202031232301032230032310221303032221222201023223312130031030203132200010100132000220330303120213202"
 
+assert_contains() {
+    local haystack="$1"
+    local needle="$2"
+    local label="$3"
+
+    if [[ "${haystack}" != *"${needle}"* ]]; then
+        printf "ASSERTION FAILED: %s\n" "${label}" >&2
+        printf "Expected to find: %s\n" "${needle}" >&2
+        exit 1
+    fi
+}
+
+run_and_assert() {
+    local label="$1"
+    local cmd="$2"
+    shift 2
+    local output
+
+    printf "== %s ==\n" "${label}"
+    output="$(eval "${cmd}")"
+    printf "%s\n\n" "${output}"
+
+    while (( "$#" > 0 )); do
+        assert_contains "${output}" "$1" "${label}"
+        shift
+    done
+}
+
 printf "Repository root: %s\n" "${REPO_ROOT}"
 printf "Build directory: %s\n\n" "${BUILD_DIR}"
 
@@ -34,27 +62,62 @@ printf "== Running Type 2 coverage observations (non-fatal) ==\n"
 ./unpack_type2_overlap_observation || true
 printf "\n"
 
-printf "== Running CLI encode/decode sanity checks ==\n"
-./wspr-encode K1ABC FN20 30
-printf "\n"
+run_and_assert \
+    "CLI encode sanity" \
+    "./wspr-encode K1ABC FN20 30" \
+    "Type: TYPE1" \
+    "Callsign: K1ABC" \
+    "Locator: FN20" \
+    "Power: 30 dBm" \
+    "Symbols:"
 
-./wspr-decode "${TYPE1_SYMBOLS}"
-printf "\n"
+run_and_assert \
+    "CLI decode Type 1" \
+    "./wspr-decode ${TYPE1_SYMBOLS}" \
+    "Decoded Type 1 message:" \
+    "Callsign: K1ABC" \
+    "Locator:  FN20" \
+    "Power:    30"
 
-./wspr-decode "${TYPE2_SUFFIX_SYMBOLS}"
-printf "\n"
+run_and_assert \
+    "CLI decode Type 2 suffix" \
+    "./wspr-decode ${TYPE2_SUFFIX_SYMBOLS}" \
+    "Decoded Type 2 partial message:" \
+    "Callsign: <hashed>" \
+    "Extra:    /12" \
+    "Power:    30"
 
-./wspr-decode "${TYPE2_PREFIX_SYMBOLS}"
-printf "\n"
+run_and_assert \
+    "CLI decode Type 2 prefix" \
+    "./wspr-decode ${TYPE2_PREFIX_SYMBOLS}" \
+    "Decoded Type 2 partial message:" \
+    "Callsign: <hashed>" \
+    "Extra:    W1/" \
+    "Power:    30"
 
-./wspr-decode "${TYPE3_SYMBOLS}"
-printf "\n"
+run_and_assert \
+    "CLI decode Type 3" \
+    "./wspr-decode ${TYPE3_SYMBOLS}" \
+    "Decoded Type 3 partial message:" \
+    "Callsign: <hashed>" \
+    "Hash:     6521" \
+    "Locator:  FN20AB" \
+    "Power:    30"
 
-printf "== Running correlator CLI sanity checks ==\n"
-./wspr-correlate "${TYPE2_SUFFIX_SYMBOLS}" "${TYPE3_SYMBOLS}"
-printf "\n"
+run_and_assert \
+    "CLI correlate suffix" \
+    "./wspr-correlate ${TYPE2_SUFFIX_SYMBOLS} ${TYPE3_SYMBOLS}" \
+    "Correlated result" \
+    "Callsign: <hashed>/12" \
+    "Locator:  FN20AB" \
+    "Power:    30"
 
-./wspr-correlate "${TYPE2_PREFIX_SYMBOLS}" "${TYPE3_SYMBOLS}"
-printf "\n"
+run_and_assert \
+    "CLI correlate prefix" \
+    "./wspr-correlate ${TYPE2_PREFIX_SYMBOLS} ${TYPE3_SYMBOLS}" \
+    "Correlated result" \
+    "Callsign: W1/<hashed>" \
+    "Locator:  FN20AB" \
+    "Power:    30"
 
 printf "All major regressions completed successfully.\n"
