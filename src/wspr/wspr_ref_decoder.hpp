@@ -11,6 +11,7 @@ namespace wspr
     {
     public:
         bool symbols_to_bits(const std::string &symbol_text, uint8_t *g_bits, std::string &error) const;
+        void deinterleave_bits(const uint8_t *interleaved_bits, uint8_t *deinterleaved_bits) const;
 
     private:
         bool parse_symbols(const std::string &symbol_text, uint8_t *symbols, std::string &error) const;
@@ -18,4 +19,4 @@ namespace wspr
     };
 } // namespace wspr
 
-#endif
+#endif // WSPR_REF_DECODER_HPP

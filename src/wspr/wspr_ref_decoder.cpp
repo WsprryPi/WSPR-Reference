@@ -103,4 +103,34 @@ namespace wspr
         for (std::size_t i = 0; i < WSPR_SYMBOL_COUNT; ++i)
             sync[i] = sync_vector[i];
     }
+
+    void WsprRefDecoder::deinterleave_bits(
+        const uint8_t *interleaved_bits,
+        uint8_t *deinterleaved_bits) const
+    {
+        std::size_t i = 0;
+
+        for (uint16_t j = 0; j < 255; ++j)
+        {
+            uint8_t index_temp = static_cast<uint8_t>(j);
+            uint8_t rev = 0;
+
+            for (uint8_t k = 0; k < 8; ++k)
+            {
+                if ((index_temp & 0x01U) != 0)
+                    rev = static_cast<uint8_t>(rev | (1U << (7 - k)));
+
+                index_temp = static_cast<uint8_t>(index_temp >> 1);
+            }
+
+            if (rev < WSPR_BIT_COUNT)
+            {
+                deinterleaved_bits[i] = interleaved_bits[rev];
+                ++i;
+            }
+
+            if (i >= WSPR_BIT_COUNT)
+                break;
+        }
+    }
 } // namespace wspr

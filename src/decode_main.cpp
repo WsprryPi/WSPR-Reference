@@ -16,6 +16,7 @@ int main(int argc, char **argv)
 
     wspr::WsprRefDecoder decoder;
     uint8_t g_bits[wspr::WSPR_BIT_COUNT] = {};
+    uint8_t deinterleaved_bits[wspr::WSPR_BIT_COUNT] = {};
     std::string error;
 
     if (!decoder.symbols_to_bits(argv[1], g_bits, error))
@@ -24,9 +25,16 @@ int main(int argc, char **argv)
         return 1;
     }
 
+    decoder.deinterleave_bits(g_bits, deinterleaved_bits);
+
     std::cout << "Recovered g bits:\n";
     for (std::size_t i = 0; i < wspr::WSPR_BIT_COUNT; ++i)
         std::cout << static_cast<unsigned>(g_bits[i]);
+    std::cout << "\n";
+
+    std::cout << "Deinterleaved bits:\n";
+    for (std::size_t i = 0; i < wspr::WSPR_BIT_COUNT; ++i)
+        std::cout << static_cast<unsigned>(deinterleaved_bits[i]);
     std::cout << "\n";
 
     return 0;
