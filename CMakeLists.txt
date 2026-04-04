@@ -160,3 +160,20 @@ target_compile_options(fano_compare_short
         -Wextra
         -Wpedantic
 )
+
+add_executable(fano_compare_24
+    tests/fano_compare_24.cpp
+    src/wspr/wspr_ref_fano.cpp
+)
+
+target_include_directories(fano_compare_24
+    PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/src
+)
+
+target_compile_options(fano_compare_24
+    PRIVATE
+        -Wall
+        -Wextra
+        -Wpedantic
+)
