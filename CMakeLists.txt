@@ -45,6 +45,7 @@ add_executable(wspr-decode
     src/decode_main.cpp
     src/wspr/wspr_ref_decoder.cpp
     src/wspr/wspr_ref_fano.cpp
+    src/wspr/wspr_ref_unpack.cpp
 )
 
 target_include_directories(wspr-decode
