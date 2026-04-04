@@ -40,3 +40,20 @@ target_compile_options(verify_vectors
         -Wextra
         -Wpedantic
 )
+
+add_executable(wspr-decode
+    src/decode_main.cpp
+    src/wspr/wspr_ref_decoder.cpp
+)
+
+target_include_directories(wspr-decode
+    PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/src
+)
+
+target_compile_options(wspr-decode
+    PRIVATE
+        -Wall
+        -Wextra
+        -Wpedantic
+)
