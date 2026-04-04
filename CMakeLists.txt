@@ -306,3 +306,20 @@ target_compile_options(unpack_type2_roundtrip
         -Wextra
         -Wpedantic
 )
+
+add_executable(wspr-encode
+    src/encode_main.cpp
+    src/wspr/wspr_ref_encoder.cpp
+)
+
+target_include_directories(wspr-encode
+    PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/src
+)
+
+target_compile_options(wspr-encode
+    PRIVATE
+        -Wall
+        -Wextra
+        -Wpedantic
+)

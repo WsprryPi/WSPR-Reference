@@ -6,6 +6,66 @@
 #include <iostream>
 #include <string>
 
+namespace
+{
+    bool is_valid_wspr_power(int power_dbm)
+    {
+        static constexpr int valid_dbm[] = {
+            0, 3, 7, 10, 13, 17, 20, 23, 27, 30,
+            33, 37, 40, 43, 47, 50, 53, 57, 60};
+
+        for (int p : valid_dbm)
+        {
+            if (power_dbm == p)
+                return true;
+        }
+
+        return false;
+    }
+
+    bool is_plausible_type1_callsign(const std::string &callsign)
+    {
+        if (callsign.empty() || callsign.size() > 6)
+            return false;
+
+        bool has_digit = false;
+        bool has_letter = false;
+
+        for (char c : callsign)
+        {
+            if (c >= '0' && c <= '9')
+                has_digit = true;
+            else if (c >= 'A' && c <= 'Z')
+                has_letter = true;
+            else if (c != ' ')
+                return false;
+        }
+
+        if (!has_digit || !has_letter)
+            return false;
+
+        return true;
+    }
+
+    std::string unrotate_type3_locator(const std::string &packed_locator)
+    {
+        if (packed_locator.size() != 6)
+            return packed_locator;
+
+        std::string out;
+        out.reserve(6);
+
+        out.push_back(packed_locator[5]);
+        out.push_back(packed_locator[0]);
+        out.push_back(packed_locator[1]);
+        out.push_back(packed_locator[2]);
+        out.push_back(packed_locator[3]);
+        out.push_back(packed_locator[4]);
+
+        return out;
+    }
+} // namespace
+
 namespace wspr
 {
     namespace
@@ -102,6 +162,9 @@ namespace wspr
 
         power_dbm = static_cast<int>(power_field);
 
+        if (!is_valid_wspr_power(power_dbm))
+            return false;
+
         if (locator_field >= (180U * 180U))
             return false;
 
@@ -153,6 +216,12 @@ namespace wspr
         const uint32_t m = extract_m(payload_bits, payload_bit_count);
 
         unpack_callsign_type1(n, message.callsign);
+
+        if (!is_plausible_type1_callsign(message.callsign))
+        {
+            message.error = "Implausible Type 1 callsign.";
+            return false;
+        }
 
         if (!unpack_locator_power_type1(m, message.locator, message.power_dbm))
         {
@@ -294,14 +363,6 @@ namespace wspr
         const uint32_t ext_field = raw / 128U;
 
         uint32_t offset = 0;
-
-        std::cout
-            << "m=" << m
-            << " raw=" << raw
-            << " low_bits=" << low_bits
-            << " ext_field=" << ext_field
-            << " offset=" << offset
-            << "\n";
 
         if (!decode_type2_power_and_offset(low_bits, message.power_dbm, offset))
         {
@@ -483,7 +544,13 @@ namespace wspr
             extract_type3_hash_value(payload_bits, payload_bit_count);
 
         const uint32_t hash = m / 128U;
-        const uint32_t power_field = (m - 64U) % 128U;
+        const uint32_t packed_power = m % 128U;
+
+        if (packed_power > 63U)
+        {
+            message.error = "Invalid Type 3 packed power field.";
+            return false;
+        }
 
         if (!unpack_locator_type3(locator_value, message.locator))
         {
@@ -491,10 +558,19 @@ namespace wspr
             return false;
         }
 
+        message.locator = unrotate_type3_locator(message.locator);
+
+        message.power_dbm = 63 - static_cast<int>(packed_power);
+
+        if (!is_valid_wspr_power(message.power_dbm))
+        {
+            message.error = "Invalid Type 3 power value.";
+            return false;
+        }
+
         message.callsign = "<hashed>";
         message.callsign_hash = hash;
         message.has_hash = true;
-        message.power_dbm = static_cast<int>(power_field);
         message.valid = true;
         message.type = WsprMessageType::Type3;
         message.is_partial = true;

@@ -7,6 +7,44 @@
 #include <iostream>
 #include <string>
 
+namespace
+{
+    void print_payload_bits(const uint8_t *payload_bits)
+    {
+        std::cout << "Recovered payload bits:\n";
+        for (std::size_t i = 0; i < wspr::WSPR_PAYLOAD_BIT_COUNT; ++i)
+            std::cout << static_cast<unsigned>(payload_bits[i]);
+        std::cout << "\n";
+    }
+
+    void print_type1_message(const wspr::WsprDecodedMessage &message)
+    {
+        std::cout << "\nDecoded Type 1 message:\n";
+        std::cout << "  Callsign: " << message.callsign << "\n";
+        std::cout << "  Locator:  " << message.locator << "\n";
+        std::cout << "  Power:    " << message.power_dbm << "\n";
+    }
+
+    void print_type2_message(const wspr::WsprDecodedMessage &message)
+    {
+        std::cout << "\nDecoded Type 2 partial message:\n";
+        std::cout << "  Callsign: " << message.callsign << "\n";
+        std::cout << "  Extra:    " << message.extra << "\n";
+        std::cout << "  Power:    " << message.power_dbm << "\n";
+        std::cout << "  Partial:  " << (message.is_partial ? "true" : "false") << "\n";
+    }
+
+    void print_type3_message(const wspr::WsprDecodedMessage &message)
+    {
+        std::cout << "\nDecoded Type 3 partial message:\n";
+        std::cout << "  Callsign: " << message.callsign << "\n";
+        std::cout << "  Hash:     " << message.callsign_hash << "\n";
+        std::cout << "  Locator:  " << message.locator << "\n";
+        std::cout << "  Power:    " << message.power_dbm << "\n";
+        std::cout << "  Partial:  " << (message.is_partial ? "true" : "false") << "\n";
+    }
+} // namespace
+
 int main(int argc, char **argv)
 {
     if (argc != 2)
@@ -48,26 +86,37 @@ int main(int argc, char **argv)
         std::cout << static_cast<unsigned>(deinterleaved_bits[i]);
     std::cout << "\n";
 
-    std::cout << "Recovered payload bits:\n";
-    for (std::size_t i = 0; i < wspr::WSPR_PAYLOAD_BIT_COUNT; ++i)
-        std::cout << static_cast<unsigned>(payload_bits[i]);
-    std::cout << "\n";
+    print_payload_bits(payload_bits);
 
     wspr::WsprDecodedMessage message;
+
     if (unpacker.unpack_type1(
             payload_bits,
             wspr::WSPR_PAYLOAD_BIT_COUNT,
             message))
     {
-        std::cout << "\nDecoded Type 1 message:\n";
-        std::cout << "  Callsign: " << message.callsign << "\n";
-        std::cout << "  Locator:  " << message.locator << "\n";
-        std::cout << "  Power:    " << message.power_dbm << "\n";
-    }
-    else
-    {
-        std::cout << "\nType 1 unpack failed: " << message.error << "\n";
+        print_type1_message(message);
+        return 0;
     }
 
+    if (unpacker.unpack_type2(
+            payload_bits,
+            wspr::WSPR_PAYLOAD_BIT_COUNT,
+            message))
+    {
+        print_type2_message(message);
+        return 0;
+    }
+
+    if (unpacker.unpack_type3(
+            payload_bits,
+            wspr::WSPR_PAYLOAD_BIT_COUNT,
+            message))
+    {
+        print_type3_message(message);
+        return 0;
+    }
+
+    std::cout << "\nNo message type unpack succeeded.\n";
     return 0;
 }
