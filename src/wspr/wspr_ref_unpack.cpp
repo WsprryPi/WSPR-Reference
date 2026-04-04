@@ -41,10 +41,7 @@ namespace
                 return false;
         }
 
-        if (!has_digit || !has_letter)
-            return false;
-
-        return true;
+        return has_digit && has_letter;
     }
 
     std::string unrotate_type3_locator(const std::string &packed_locator)
@@ -63,6 +60,11 @@ namespace
         out.push_back(packed_locator[4]);
 
         return out;
+    }
+
+    bool is_type2_overlap_ext_field(uint32_t ext_field)
+    {
+        return (ext_field >= 27258U && ext_field <= 27267U);
     }
 } // namespace
 
@@ -371,18 +373,9 @@ namespace wspr
         }
 
         std::string extra;
+        std::string alternate_extra;
+        bool has_ambiguity = false;
 
-        // One-character suffix: /7, /P, etc.
-        if (ext_field >= 27232U && ext_field <= 27270U)
-        {
-            if (offset != 2U)
-            {
-                message.error = "Invalid offset for Type 2 one-character suffix.";
-                return false;
-            }
-
-            extra = decode_type2_suffix_one_char(ext_field - 27232U);
-        }
         // Two-digit numeric suffix: /00 .. /99
         if (ext_field >= 27258U && ext_field <= 27357U)
         {
@@ -393,8 +386,20 @@ namespace wspr
             }
 
             extra = decode_type2_suffix_two_digit(ext_field - 27258U);
+
+            if (is_type2_overlap_ext_field(ext_field))
+            {
+                const std::string overlap_one_char =
+                    decode_type2_suffix_one_char(ext_field - 27232U);
+
+                if (!overlap_one_char.empty())
+                {
+                    has_ambiguity = true;
+                    alternate_extra = overlap_one_char;
+                }
+            }
         }
-        // One-character suffix: /7, /P, etc.
+        // One-character suffix: /0 .. /9, /A .. /Z, etc.
         else if (ext_field >= 27232U && ext_field <= 27270U)
         {
             if (offset != 2U)
@@ -437,6 +442,8 @@ namespace wspr
         message.valid = true;
         message.type = WsprMessageType::Type2;
         message.is_partial = true;
+        message.has_ambiguity = has_ambiguity;
+        message.alternate_extra = alternate_extra;
 
         return true;
     }

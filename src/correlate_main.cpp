@@ -77,8 +77,9 @@ namespace
 
         std::cout << "  Callsign: " << message.callsign << "\n";
 
-        if (!message.extra.empty())
-            std::cout << "  Extra:    " << message.extra << "\n";
+        if (message.has_ambiguity)
+            std::cout << "  Ambiguous with: "
+                      << message.alternate_extra << "\n";
 
         if (message.has_hash)
             std::cout << "  Hash:     " << message.callsign_hash << "\n";
@@ -93,8 +94,7 @@ namespace
 
     void print_quiet_correlated(const wspr::WsprDecodedMessage &message)
     {
-        std::cout
-            << "CORRELATED ";
+        std::cout << "CORRELATED ";
 
         switch (message.type)
         {
@@ -124,7 +124,12 @@ namespace
         else
             std::cout << "- ";
 
-        std::cout << message.power_dbm << "\n";
+        std::cout << message.power_dbm;
+
+        if (message.has_ambiguity)
+            std::cout << " ALT " << message.alternate_extra;
+
+        std::cout << "\n";
     }
 
     void print_quiet_uncorrelated(

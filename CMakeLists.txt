@@ -395,3 +395,23 @@ target_compile_options(unpack_type2_overlap_observation
         -Wextra
         -Wpedantic
 )
+
+add_executable(unpack_type2_ambiguity
+    tests/unpack_type2_ambiguity.cpp
+    src/wspr/wspr_ref_encoder.cpp
+    src/wspr/wspr_ref_decoder.cpp
+    src/wspr/wspr_ref_fano.cpp
+    src/wspr/wspr_ref_unpack.cpp
+)
+
+target_include_directories(unpack_type2_ambiguity
+    PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/src
+)
+
+target_compile_options(unpack_type2_ambiguity
+    PRIVATE
+        -Wall
+        -Wextra
+        -Wpedantic
+)

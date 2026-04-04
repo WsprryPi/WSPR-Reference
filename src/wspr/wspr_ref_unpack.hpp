@@ -30,6 +30,10 @@ namespace wspr
         bool has_hash = false;
 
         bool is_partial = false;
+
+        bool has_ambiguity = false;
+        std::string alternate_extra;
+
         std::string error;
     };
 

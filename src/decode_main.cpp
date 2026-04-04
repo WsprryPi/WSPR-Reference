@@ -33,6 +33,12 @@ namespace
         std::cout << "  Power:    " << message.power_dbm << "\n";
         std::cout << "  Partial:  "
                   << (message.is_partial ? "true" : "false") << "\n";
+
+        if (message.has_ambiguity)
+        {
+            std::cout << "  Ambiguous with: "
+                      << message.alternate_extra << "\n";
+        }
     }
 
     void print_type3_message(const wspr::WsprDecodedMessage &message)
@@ -63,7 +69,12 @@ namespace
                 << "TYPE2 "
                 << message.callsign << " "
                 << message.extra << " "
-                << message.power_dbm << "\n";
+                << message.power_dbm;
+
+            if (message.has_ambiguity)
+                std::cout << " ALT " << message.alternate_extra;
+
+            std::cout << "\n";
             break;
 
         case wspr::WsprMessageType::Type3:
