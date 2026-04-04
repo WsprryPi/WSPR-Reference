@@ -194,3 +194,22 @@ target_compile_options(fano_full_payload_roundtrip
         -Wextra
         -Wpedantic
 )
+
+add_executable(payload_compare_roundtrip
+    tests/payload_compare_roundtrip.cpp
+    src/wspr/wspr_ref_encoder.cpp
+    src/wspr/wspr_ref_decoder.cpp
+    src/wspr/wspr_ref_fano.cpp
+)
+
+target_include_directories(payload_compare_roundtrip
+    PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/src
+)
+
+target_compile_options(payload_compare_roundtrip
+    PRIVATE
+        -Wall
+        -Wextra
+        -Wpedantic
+)

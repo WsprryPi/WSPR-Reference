@@ -1,5 +1,5 @@
 #include "wspr/wspr_ref_decoder.hpp"
-#include "wspr/wspr_ref_encoder.hpp"
+#include "wspr/wspr_constants.hpp"
 
 #include <cstddef>
 #include <cstdint>
@@ -15,8 +15,11 @@ int main(int argc, char **argv)
     }
 
     wspr::WsprRefDecoder decoder;
+
     uint8_t g_bits[wspr::WSPR_BIT_COUNT] = {};
     uint8_t deinterleaved_bits[wspr::WSPR_BIT_COUNT] = {};
+    uint8_t payload_bits[wspr::WSPR_PAYLOAD_BIT_COUNT] = {};
+
     std::string error;
 
     if (!decoder.symbols_to_bits(argv[1], g_bits, error))
@@ -27,6 +30,12 @@ int main(int argc, char **argv)
 
     decoder.deinterleave_bits(g_bits, deinterleaved_bits);
 
+    if (!decoder.decode_payload_bits_from_symbols(argv[1], payload_bits, error))
+    {
+        std::cerr << "Payload decode error: " << error << "\n";
+        return 1;
+    }
+
     std::cout << "Recovered g bits:\n";
     for (std::size_t i = 0; i < wspr::WSPR_BIT_COUNT; ++i)
         std::cout << static_cast<unsigned>(g_bits[i]);
@@ -35,6 +44,11 @@ int main(int argc, char **argv)
     std::cout << "Deinterleaved bits:\n";
     for (std::size_t i = 0; i < wspr::WSPR_BIT_COUNT; ++i)
         std::cout << static_cast<unsigned>(deinterleaved_bits[i]);
+    std::cout << "\n";
+
+    std::cout << "Recovered payload bits:\n";
+    for (std::size_t i = 0; i < wspr::WSPR_PAYLOAD_BIT_COUNT; ++i)
+        std::cout << static_cast<unsigned>(payload_bits[i]);
     std::cout << "\n";
 
     return 0;

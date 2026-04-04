@@ -650,4 +650,43 @@ namespace wspr
             call[0] = ' ';
         }
     }
+
+    bool WsprRefEncoder::debug_get_payload_bits(
+        const char *call,
+        const char *loc,
+        int8_t dbm,
+        uint8_t *payload_bits) const
+    {
+        if (call == nullptr || loc == nullptr || payload_bits == nullptr)
+            return false;
+
+        char call_[13] = {};
+        char loc_[7] = {};
+        uint8_t dbm_ = static_cast<uint8_t>(dbm);
+
+        std::strncpy(call_, call, 12);
+        call_[12] = '\0';
+
+        std::strncpy(loc_, loc, 6);
+        loc_[6] = '\0';
+
+        WsprRefEncoder temp_encoder;
+        temp_encoder.wspr_message_prep(call_, loc_, dbm_);
+
+        uint8_t c[11] = {};
+        temp_encoder.wspr_bit_packing(c);
+
+        std::size_t out_index = 0;
+
+        for (std::size_t byte_index = 0; byte_index < 11 && out_index < WSPR_PAYLOAD_BIT_COUNT; ++byte_index)
+        {
+            for (uint8_t bit = 0; bit < 8 && out_index < WSPR_PAYLOAD_BIT_COUNT; ++bit)
+            {
+                payload_bits[out_index++] =
+                    static_cast<uint8_t>(((c[byte_index] << bit) & 0x80U) ? 1U : 0U);
+            }
+        }
+
+        return (out_index == WSPR_PAYLOAD_BIT_COUNT);
+    }
 } // namespace wspr

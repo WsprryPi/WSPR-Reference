@@ -14,6 +14,12 @@ class WsprRefEncoder
 public:
     void wspr_encode(const char *call, const char *loc, int8_t dbm, uint8_t *symbols);
 
+    bool debug_get_payload_bits(
+        const char* call,
+        const char* loc,
+        int8_t dbm,
+        uint8_t* payload_bits) const;
+
 private:
     uint8_t wspr_code(char c) const;
     void wspr_message_prep(char *call, char *loc, int8_t dbm);
