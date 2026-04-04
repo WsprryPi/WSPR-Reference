@@ -268,3 +268,21 @@ target_compile_options(unpack_type3_smoke
         -Wextra
         -Wpedantic
 )
+
+add_executable(correlator_smoke
+    tests/correlator_smoke.cpp
+    src/wspr/wspr_ref_correlator.cpp
+    src/wspr/wspr_ref_unpack.cpp
+)
+
+target_include_directories(correlator_smoke
+    PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/src
+)
+
+target_compile_options(correlator_smoke
+    PRIVATE
+        -Wall
+        -Wextra
+        -Wpedantic
+)
