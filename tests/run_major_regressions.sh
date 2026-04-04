@@ -20,6 +20,12 @@ CORRELATED_AMBIGUOUS_QUIET_EXPECTED="CORRELATED TYPE2 <hashed>/09 6521 FN20AB 30
 CORRELATED_SUFFIX_QUIET_EXPECTED="CORRELATED TYPE2 <hashed>/12 6521 FN20AB 30"
 CORRELATED_PREFIX_QUIET_EXPECTED="CORRELATED TYPE2 W1/<hashed> 6521 FN20AB 30"
 
+TYPE1_JSON_EXPECTED='"type": "TYPE1"'
+TYPE2_AMBIGUOUS_JSON_EXPECTED_1='"has_ambiguity": true'
+TYPE2_AMBIGUOUS_JSON_EXPECTED_2='"alternate_extra": "/Z"'
+CORRELATED_JSON_EXPECTED='"status": "CORRELATED"'
+CORRELATED_AMBIGUOUS_JSON_EXPECTED='"alternate_extra": "/Z"'
+
 assert_contains() {
     local haystack="$1"
     local needle="$2"
@@ -141,6 +147,13 @@ run_and_assert \
     "330020021022111022120121133220000232032322002012130033030021303020033032301010232030110201323012223220221021021112330211212021312202030320112222222330323322013222"
 
 run_and_assert \
+    "CLI decode Type 2 ambiguous verbose" \
+    "./wspr-decode ${TYPE2_AMBIGUOUS_SYMBOLS}" \
+    "Decoded Type 2 partial message:" \
+    "Extra:    /09" \
+    "Ambiguous with: /Z"
+
+run_and_assert \
     "CLI decode Type 1 quiet" \
     "./wspr-decode --quiet ${TYPE1_SYMBOLS}" \
     "${TYPE1_QUIET_EXPECTED}"
@@ -176,15 +189,52 @@ run_and_assert \
     "${TYPE2_AMBIGUOUS_QUIET_EXPECTED}"
 
 run_and_assert \
-    "CLI decode Type 2 ambiguous verbose" \
-    "./wspr-decode ${TYPE2_AMBIGUOUS_SYMBOLS}" \
-    "Decoded Type 2 partial message:" \
-    "Extra:    /09" \
-    "Ambiguous with: /Z"
-
-run_and_assert \
     "CLI correlate ambiguous quiet" \
     "./wspr-correlate --quiet ${TYPE2_AMBIGUOUS_SYMBOLS} ${TYPE3_SYMBOLS}" \
     "${CORRELATED_AMBIGUOUS_QUIET_EXPECTED}"
+
+    printf "%s\n" ""
+    printf "%s\n" "== CLI JSON sanity =="
+
+run_and_assert \
+    "CLI encode JSON" \
+    "${BUILD_DIR}/wspr-encode --json K1ABC FN20 30" \
+    '"type": "TYPE1"' \
+    '"callsign": "K1ABC"' \
+    '"locator": "FN20"' \
+    '"power_dbm": 30'
+
+run_and_assert \
+    "CLI decode Type 1 JSON" \
+    "${BUILD_DIR}/wspr-decode --json ${TYPE1_SYMBOLS}" \
+    '"type": "TYPE1"' \
+    '"callsign": "K1ABC"' \
+    '"locator": "FN20"' \
+    '"power_dbm": 30'
+
+run_and_assert \
+    "CLI decode Type 2 ambiguous JSON" \
+    "${BUILD_DIR}/wspr-decode --json ${TYPE2_AMBIGUOUS_SYMBOLS}" \
+    '"type": "TYPE2"' \
+    '"extra": "/09"' \
+    '"has_ambiguity": true' \
+    '"alternate_extra": "/Z"'
+
+run_and_assert \
+    "CLI correlate JSON" \
+    "${BUILD_DIR}/wspr-correlate --json ${TYPE2_SUFFIX_SYMBOLS} ${TYPE3_SYMBOLS}" \
+    '"status": "CORRELATED"' \
+    '"type": "TYPE2"' \
+    '"callsign": "<hashed>/12"' \
+    '"locator": "FN20AB"'
+
+run_and_assert \
+    "CLI correlate ambiguous JSON" \
+    "${BUILD_DIR}/wspr-correlate --json ${TYPE2_AMBIGUOUS_SYMBOLS} ${TYPE3_SYMBOLS}" \
+    '"status": "CORRELATED"' \
+    '"type": "TYPE2"' \
+    '"callsign": "<hashed>/09"' \
+    '"has_ambiguity": true' \
+    '"alternate_extra": "/Z"'
 
 printf "All major regressions completed successfully.\n"
