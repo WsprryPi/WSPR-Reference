@@ -77,6 +77,12 @@ namespace
             std::cout << "\n";
             break;
 
+            if (message.has_ambiguity)
+                std::cout << " ALT " << message.alternate_extra;
+
+            std::cout << "\n";
+            break;
+
         case wspr::WsprMessageType::Type3:
             std::cout
                 << "TYPE3 "

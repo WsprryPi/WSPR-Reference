@@ -77,6 +77,9 @@ namespace
 
         std::cout << "  Callsign: " << message.callsign << "\n";
 
+        if (!message.extra.empty())
+            std::cout << "  Extra:    " << message.extra << "\n";
+
         if (message.has_ambiguity)
             std::cout << "  Ambiguous with: "
                       << message.alternate_extra << "\n";
@@ -88,7 +91,9 @@ namespace
             std::cout << "  Locator:  " << message.locator << "\n";
 
         std::cout << "  Power:    " << message.power_dbm << "\n";
-        std::cout << "  Partial:  " << (message.is_partial ? "true" : "false") << "\n";
+        std::cout << "  Partial:  "
+                  << (message.is_partial ? "true" : "false") << "\n";
+
         std::cout << "\n";
     }
 
