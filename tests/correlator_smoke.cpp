@@ -1,46 +1,82 @@
 #include "wspr/wspr_ref_correlator.hpp"
 
 #include <iostream>
+#include <string>
+
+namespace
+{
+    bool run_case(
+        const std::string &label,
+        const std::string &extra,
+        const std::string &expected_callsign)
+    {
+        wspr::WsprRefCorrelator correlator;
+
+        wspr::WsprDecodedMessage type2;
+        type2.valid = true;
+        type2.type = wspr::WsprMessageType::Type2;
+        type2.callsign = "<hashed>";
+        type2.extra = extra;
+        type2.power_dbm = 30;
+        type2.is_partial = true;
+
+        wspr::WsprDecodedMessage type3;
+        type3.valid = true;
+        type3.type = wspr::WsprMessageType::Type3;
+        type3.callsign = "<hashed>";
+        type3.callsign_hash = 12345;
+        type3.has_hash = true;
+        type3.locator = "FN20AB";
+        type3.power_dbm = 30;
+        type3.is_partial = true;
+
+        correlator.add_message(type2);
+        correlator.add_message(type3);
+
+        wspr::WsprDecodedMessage resolved;
+        if (!correlator.try_resolve_last(resolved))
+        {
+            std::cerr << label << ": Correlator failed to resolve pair.\n";
+            return false;
+        }
+
+        const bool pass =
+            resolved.valid &&
+            resolved.callsign == expected_callsign &&
+            resolved.extra == extra &&
+            resolved.locator == "FN20AB" &&
+            resolved.power_dbm == 30 &&
+            resolved.callsign_hash == 12345 &&
+            resolved.has_hash &&
+            resolved.is_partial;
+
+        std::cout << label << ":\n";
+        std::cout << "  Callsign: " << resolved.callsign << "\n";
+        std::cout << "  Extra:    " << resolved.extra << "\n";
+        std::cout << "  Locator:  " << resolved.locator << "\n";
+        std::cout << "  Power:    " << resolved.power_dbm << "\n";
+        std::cout << "  Hash:     " << resolved.callsign_hash << "\n";
+        std::cout << "  Partial:  " << (resolved.is_partial ? "true" : "false") << "\n";
+        std::cout << "  Result:   " << (pass ? "PASS" : "FAIL") << "\n\n";
+
+        return pass;
+    }
+} // namespace
 
 int main()
 {
-    wspr::WsprRefCorrelator correlator;
+    bool all_pass = true;
 
-    wspr::WsprDecodedMessage type2;
-    type2.valid = true;
-    type2.type = wspr::WsprMessageType::Type2;
-    type2.callsign = "<hashed>";
-    type2.extra = "/7";
-    type2.power_dbm = 30;
-    type2.is_partial = true;
+    all_pass &= run_case(
+        "Suffix case",
+        "/12",
+        "<hashed>/12");
 
-    wspr::WsprDecodedMessage type3;
-    type3.valid = true;
-    type3.type = wspr::WsprMessageType::Type3;
-    type3.callsign = "<hashed>";
-    type3.callsign_hash = 12345;
-    type3.has_hash = true;
-    type3.locator = "FN20AB";
-    type3.power_dbm = 30;
-    type3.is_partial = true;
+    all_pass &= run_case(
+        "Prefix case",
+        "W1/",
+        "W1/<hashed>");
 
-    correlator.add_message(type2);
-    correlator.add_message(type3);
-
-    wspr::WsprDecodedMessage resolved;
-    if (!correlator.try_resolve_last(resolved))
-    {
-        std::cerr << "Correlator failed to resolve pair.\n";
-        return 1;
-    }
-
-    std::cout << "Resolved message:\n";
-    std::cout << "  Callsign: " << resolved.callsign << "\n";
-    std::cout << "  Extra:    " << resolved.extra << "\n";
-    std::cout << "  Locator:  " << resolved.locator << "\n";
-    std::cout << "  Power:    " << resolved.power_dbm << "\n";
-    std::cout << "  Hash:     " << resolved.callsign_hash << "\n";
-    std::cout << "  Partial:  " << (resolved.is_partial ? "true" : "false") << "\n";
-
-    return 0;
+    std::cout << "Summary: " << (all_pass ? "PASS" : "FAIL") << "\n";
+    return all_pass ? 0 : 1;
 }

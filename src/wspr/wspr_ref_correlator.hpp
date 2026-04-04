@@ -26,6 +26,10 @@ namespace wspr
             const WsprDecodedMessage &b,
             WsprDecodedMessage &resolved_message) const;
 
+        std::string combine_callsign_and_extra(
+            const std::string &callsign,
+            const std::string &extra) const;
+
         std::vector<WsprDecodedMessage> recent_messages_;
     };
 } // namespace wspr
