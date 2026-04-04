@@ -364,3 +364,34 @@ target_compile_options(wspr-correlate
         -Wpedantic
         
 )
+
+add_executable(unpack_type2_matrix
+    tests/unpack_type2_matrix.cpp
+    src/wspr/wspr_ref_encoder.cpp
+    src/wspr/wspr_ref_decoder.cpp
+    src/wspr/wspr_ref_fano.cpp
+    src/wspr/wspr_ref_unpack.cpp
+)
+
+target_include_directories(unpack_type2_matrix
+    PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/src
+)
+
+target_compile_options(unpack_type2_matrix
+    PRIVATE
+        -Wall
+        -Wextra
+        -Wpedantic
+)
+
+add_executable(unpack_type2_overlap_observation
+    tests/unpack_type2_overlap_observation.cpp
+)
+
+target_compile_options(unpack_type2_overlap_observation
+    PRIVATE
+        -Wall
+        -Wextra
+        -Wpedantic
+)
