@@ -75,3 +75,20 @@ target_compile_options(fano_sanity
         -Wextra
         -Wpedantic
 )
+
+add_executable(fano_branch_ordering
+    tests/fano_branch_ordering.cpp
+    src/wspr/wspr_ref_fano.cpp
+)
+
+target_include_directories(fano_branch_ordering
+    PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/src
+)
+
+target_compile_options(fano_branch_ordering
+    PRIVATE
+        -Wall
+        -Wextra
+        -Wpedantic
+)
