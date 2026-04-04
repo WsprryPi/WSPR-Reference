@@ -24,6 +24,8 @@ namespace wspr
         std::string locator;
         int power_dbm = 0;
 
+        std::string extra; // for Type 2 prefix/suffix
+
         std::string error;
     };
 
@@ -31,6 +33,11 @@ namespace wspr
     {
     public:
         bool unpack_type1(
+            const uint8_t *payload_bits,
+            std::size_t payload_bit_count,
+            WsprDecodedMessage &message) const;
+
+        bool unpack_type2(
             const uint8_t *payload_bits,
             std::size_t payload_bit_count,
             WsprDecodedMessage &message) const;
@@ -55,4 +62,4 @@ namespace wspr
     };
 } // namespace wspr
 
-#endif  // WSPR_REF_UNPACK_HPP
+#endif // WSPR_REF_UNPACK_HPP

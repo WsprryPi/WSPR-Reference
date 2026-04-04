@@ -148,6 +148,7 @@ namespace wspr
         }
 
         const uint32_t n = extract_n(payload_bits, payload_bit_count);
+        (void)n;
         const uint32_t m = extract_m(payload_bits, payload_bit_count);
 
         unpack_callsign_type1(n, message.callsign);
@@ -160,6 +161,45 @@ namespace wspr
 
         message.valid = true;
         message.type = WsprMessageType::Type1;
+        return true;
+    }
+
+    bool WsprRefUnpacker::unpack_type2(
+        const uint8_t *payload_bits,
+        std::size_t payload_bit_count,
+        WsprDecodedMessage &message) const
+    {
+        message = WsprDecodedMessage{};
+
+        if (payload_bits == nullptr)
+        {
+            message.error = "Null payload_bits.";
+            return false;
+        }
+
+        if (payload_bit_count != WSPR_PAYLOAD_BIT_COUNT)
+        {
+            message.error = "Invalid payload size.";
+            return false;
+        }
+
+        const uint32_t n = extract_n(payload_bits, payload_bit_count);
+        const uint32_t m = extract_m(payload_bits, payload_bit_count);
+
+        // For now: we do NOT decode callsign (hashed)
+        message.callsign = "<hashed>";
+
+        const uint32_t power_field = (m - 64U) % 128U;
+        const uint32_t ext_field = (m - 64U) / 128U;
+
+        message.power_dbm = static_cast<int>(power_field);
+
+        // Very simple initial mapping (will refine later)
+        message.extra = std::to_string(ext_field);
+
+        message.valid = true;
+        message.type = WsprMessageType::Type2;
+
         return true;
     }
 } // namespace wspr

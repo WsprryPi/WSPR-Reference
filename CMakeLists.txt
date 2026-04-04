@@ -234,3 +234,20 @@ target_compile_options(unpack_type1_roundtrip
         -Wextra
         -Wpedantic
 )
+
+add_executable(unpack_type2_smoke
+    tests/unpack_type2_smoke.cpp
+    src/wspr/wspr_ref_unpack.cpp
+)
+
+target_include_directories(unpack_type2_smoke
+    PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/src
+)
+
+target_compile_options(unpack_type2_smoke
+    PRIVATE
+        -Wall
+        -Wextra
+        -Wpedantic
+)
