@@ -92,3 +92,20 @@ target_compile_options(fano_branch_ordering
         -Wextra
         -Wpedantic
 )
+
+add_executable(fano_bounded_decode
+    tests/fano_bounded_decode.cpp
+    src/wspr/wspr_ref_fano.cpp
+)
+
+target_include_directories(fano_bounded_decode
+    PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/src
+)
+
+target_compile_options(fano_bounded_decode
+    PRIVATE
+        -Wall
+        -Wextra
+        -Wpedantic
+)
