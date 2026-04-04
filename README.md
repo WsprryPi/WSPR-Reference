@@ -1,243 +1,162 @@
-# WSPR-Reference
-
-A reference-oriented WSPR encoder, decoder, unpacker, and correlator in C++17.
+# WSPR Reference Implementation
 
 ## Overview
 
-`WSPR-Reference` is a focused implementation of core WSPR message handling with
-an emphasis on clarity, repeatability, and regression testing.
+This project provides a clean, testable reference implementation of WSPR
+(Weak Signal Propagation Reporter) encoding, decoding, and correlation.
 
-The project currently includes:
+It supports:
 
-- A standalone WSPR reference encoder
-- A Fano-based decoder pipeline for recovering payload bits from symbol streams
-- Type 1 unpacking with full end-to-end validation
-- Type 2 unpacking with validated prefix and suffix decoding
-- Type 3 unpacking with validated locator and power recovery
-- A correlator for combining Type 2 and Type 3 partial decodes into a more
-  useful compound result
-- Small command-line tools for encoding, decoding, and correlating messages
-- Regression-style harnesses covering the major pipeline stages
+- Type 1 (standard messages)
+- Type 2 (extended callsigns with prefix/suffix)
+- Type 3 (hashed callsign with 6-character locator)
 
-This repository is intentionally structured as a reference implementation rather
-than a highly optimized production decoder.
+The goal is correctness, transparency, and reproducibility — not just
+successful decodes, but understanding why they work.
 
-## Current capabilities
+---
 
-### Encoding
+## Features
 
-The encoder can generate 162-symbol WSPR streams for:
+- Deterministic encoder (wspr-encode)
+- Robust decoder (wspr-decode)
+- Type 2 ↔ Type 3 correlator (wspr-correlate)
+- Full regression suite with CLI assertions
+- Explicit handling of Type 2 ambiguity
 
-- Type 1 messages
-- Type 2 compound callsign messages
-- Type 3 hashed callsign plus 6-character locator messages
+---
 
-### Decoding
+## CLI Tools
 
-The decoder can recover payload bits from a 162-symbol WSPR stream using the
-following stages:
+### Encode
 
-- Symbol parsing and validation
-- Sync-vector removal
-- Deinterleaving
-- Fano-style convolutional decoding
-- Payload unpacking
-
-### Unpacking
-
-The unpacker currently supports:
-
-- Type 1 full message unpacking
-- Type 2 partial unpacking with decoded extension forms such as:
-  - `/7`
-  - `/12`
-  - `W1/`
-- Type 3 partial unpacking with:
-  - hashed callsign placeholder
-  - recovered 6-character locator
-  - recovered power level
-
-### Correlation
-
-The correlator can combine a Type 2 partial decode and a Type 3 partial decode
-into a more useful result, for example:
-
-- `<hashed>/12`
-- `W1/<hashed>`
-
-along with locator, power, and hash metadata.
-
-## Command-line tools
-
-### `wspr-encode`
-
-Encodes a WSPR message and prints the resulting symbol stream.
-
-Example:
-
-```bash
+```
 ./wspr-encode K1ABC FN20 30
-./wspr-encode K1ABC/12 FN20 30
-./wspr-encode "<K1ABC>" FN20AB 30
+./wspr-encode --quiet K1ABC FN20 30
+./wspr-encode --symbols-only K1ABC FN20 30
 ```
 
-### `wspr-decode`
+---
 
-Decodes a single 162-symbol WSPR stream and prints recovered payload bits plus
-the best available unpacked result.
+### Decode
+
+```
+./wspr-decode <symbols>
+./wspr-decode --quiet <symbols>
+```
+
+Example (quiet):
+
+```
+TYPE1 K1ABC FN20 30
+TYPE2 <hashed> /12 30
+TYPE3 <hashed> 6521 FN20AB 30
+```
+
+---
+
+### Correlate
+
+```
+./wspr-correlate <type2_symbols> <type3_symbols>
+./wspr-correlate --quiet <type2_symbols> <type3_symbols>
+```
 
 Example:
 
-```bash
-./wspr-decode 330020021022111022120121133220000232032322002012130033030021303020033032301010232030110201323012223220221021021112330211212021312202030320112222222330323322013222
+```
+CORRELATED TYPE2 <hashed>/12 6521 FN20AB 30
 ```
 
-### `wspr-correlate`
+---
 
-Decodes two symbol streams and attempts to correlate them as a Type 2 and Type 3
-pair.
+## Type 2 Ambiguity (Important)
 
-Example:
+WSPR Type 2 messages contain an overlap in encoding space where:
 
-```bash
-./wspr-correlate 330220021020113022100321133020200230032120022210130233030001301022033232321210012232130003103030203220001221023112330233230223312202030122132020202132103322031020 332002201020111022320121311022222212032302022230130033230021301202031232301032230032310221303032221222201023223312130031030203132200010100132000220330303120213202
+- A one-character suffix (e.g. /Z)
+- Can collide with a two-digit suffix (e.g. /09)
+
+### Example overlap
+
+```
+/Z  ⇄  /09
 ```
 
-## Build
+### Decoder Behavior
 
-The project uses CMake.
+The decoder uses a deterministic primary interpretation:
 
-```bash
-mkdir -p build
-cd build
-cmake ..
-make
+```
+TYPE2 <hashed> /09 30
 ```
 
-## Dependencies
+But also exposes the alternate interpretation:
 
-The main encoder and decoder pipeline is self-contained and uses the C++
-standard library.
-
-The vector verification tooling depends on `nlohmann/json` via the repository's
-local include tree:
-
-```text
-include/nlohmann/json.hpp
+```
+TYPE2 <hashed> /09 30 ALT /Z
 ```
 
-No external package manager integration is required if that header is present in
-the repository.
+### Correlator Behavior
 
-## Project layout
+When correlating with a Type 3 message:
 
-```text
-src/
-  encode_main.cpp
-  decode_main.cpp
-  correlate_main.cpp
-  wspr/
-    wspr_constants.hpp
-    wspr_ref_encoder.hpp
-    wspr_ref_encoder.cpp
-    wspr_ref_decoder.hpp
-    wspr_ref_decoder.cpp
-    wspr_ref_fano.hpp
-    wspr_ref_fano.cpp
-    wspr_ref_unpack.hpp
-    wspr_ref_unpack.cpp
-    wspr_ref_correlator.hpp
-    wspr_ref_correlator.cpp
-
-tests/
-  verify_vectors.cpp
-  fano_sanity.cpp
-  fano_branch_ordering.cpp
-  fano_bounded_decode.cpp
-  fano_payload_roundtrip.cpp
-  fano_limited_decode.cpp
-  fano_compare_short.cpp
-  fano_compare_24.cpp
-  fano_full_payload_roundtrip.cpp
-  payload_compare_roundtrip.cpp
-  unpack_type1_roundtrip.cpp
-  unpack_type2_smoke.cpp
-  unpack_type2_roundtrip.cpp
-  unpack_type2_matrix.cpp
-  unpack_type2_overlap_observation.cpp
-  unpack_type3_smoke.cpp
-  unpack_type3_roundtrip.cpp
-  correlator_smoke.cpp
+```
+CORRELATED TYPE2 <hashed>/09 6521 FN20AB 30 ALT /Z
 ```
 
-## Validation and test coverage
+### Design Philosophy
 
-The repository includes a growing set of focused regression harnesses.
+- Do not guess silently
+- Do not discard valid interpretations
+- Surface ambiguity explicitly
+- Keep output stable for automation
 
-### Encoder / vector validation
+---
 
-- Golden vector verification
-- Payload round-trip comparison between encoder and decoder payload views
+## Regression Testing
 
-### Fano decoder validation
+Run the full suite:
 
-- Parity sanity checks
-- Branch-order sanity checks
-- Bounded-depth decode prototype checks
-- Limited thresholded decode checks
-- Short and 24-bit comparison harnesses
-- Full 81-bit payload round-trip validation
-
-### Unpacking validation
-
-- Type 1 round-trip validation
-- Type 2 smoke and round-trip validation
-- Type 2 matrix coverage across multiple prefix and suffix forms
-- Type 3 smoke and round-trip validation
-
-### Correlator validation
-
-- Smoke test for Type 2 / Type 3 pairing
-- Human-readable combined output validation through the correlator CLI
-
-## Type 2 ambiguity note
-
-There is a known ambiguity region in Type 2 extension decoding.
-
-The current test and observation work shows an overlap in the encoded extension
-space where some values can plausibly be interpreted as either:
-
-- one-character suffixes in the range `/Q` through `/Z`
-- wrapped two-digit suffixes in the range `/00` through `/12`
-
-The current implementation preserves the decode policy that is already validated
-against the repository's known-good vectors, including:
-
-- `/7`
-- `/12`
-- `W1/`
-
-An observation harness is included to make this overlap explicit:
-
-```bash
-./unpack_type2_overlap_observation
+```
+./tests/run_major_regressions.sh
 ```
 
-At this stage, ambiguity handling is intentionally deferred until after broader
-validation coverage. In other words, the project currently favors stability for
-known-good vectors over claiming universal Type 2 disambiguation.
+Covers:
 
-## Status summary
+- All message types
+- Encode/decode roundtrips
+- CLI output assertions
+- Type 2 ambiguity cases
+- Correlation correctness
 
-The repository currently has validated support for:
+---
 
-- Type 1 end-to-end decode
-- Type 2 extension decode for known prefix and suffix forms
-- Type 3 partial decode with correct locator and power recovery
-- Type 2 / Type 3 correlation into human-readable combined output
+## Example Ambiguous Case
+
+```
+./wspr-encode --quiet K1ABC/Z FN20 30
+./wspr-decode --quiet <symbols>
+```
+
+Output:
+
+```
+TYPE2 <hashed> /09 30 ALT /Z
+```
+
+---
+
+## Status
+
+- Type 1: Complete
+- Type 2: Complete (including ambiguity handling)
+- Type 3: Complete
+- Correlation: Complete
+- Regression coverage: Strong
+
+---
 
 ## License
 
-This project is licensed under the MIT License.
-
-See `LICENSE.md` for details.
+MIT License
