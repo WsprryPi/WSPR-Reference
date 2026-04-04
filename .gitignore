@@ -1,0 +1,16 @@
+# Build artifacts
+build/
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+Makefile
+
+# macOS
+.DS_Store
+
+# Editors
+.vscode/
+*.swp
+
+# Binaries
+wspr-ref
