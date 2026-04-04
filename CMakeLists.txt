@@ -109,3 +109,20 @@ target_compile_options(fano_bounded_decode
         -Wextra
         -Wpedantic
 )
+
+add_executable(fano_payload_roundtrip
+    tests/fano_payload_roundtrip.cpp
+    src/wspr/wspr_ref_fano.cpp
+)
+
+target_include_directories(fano_payload_roundtrip
+    PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/src
+)
+
+target_compile_options(fano_payload_roundtrip
+    PRIVATE
+        -Wall
+        -Wextra
+        -Wpedantic
+)
