@@ -51,6 +51,7 @@ add_executable(wspr-decode
 target_include_directories(wspr-decode
     PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/src
+        ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
 
 target_compile_options(wspr-decode
@@ -315,6 +316,7 @@ add_executable(wspr-encode
 target_include_directories(wspr-encode
     PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/src
+        ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
 
 target_compile_options(wspr-encode
@@ -355,6 +357,7 @@ add_executable(wspr-correlate
 target_include_directories(wspr-correlate
     PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/src
+        ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
 
 target_compile_options(wspr-correlate

@@ -2,6 +2,8 @@
 #include "wspr/wspr_ref_unpack.hpp"
 #include "wspr/wspr_constants.hpp"
 
+#include <nlohmann/json.hpp>
+
 #include <cstddef>
 #include <cstdint>
 #include <iostream>
@@ -9,6 +11,8 @@
 
 namespace
 {
+    using json = nlohmann::json;
+
     void print_payload_bits(const uint8_t *payload_bits)
     {
         std::cout << "Recovered payload bits:\n";
@@ -77,12 +81,6 @@ namespace
             std::cout << "\n";
             break;
 
-            if (message.has_ambiguity)
-                std::cout << " ALT " << message.alternate_extra;
-
-            std::cout << "\n";
-            break;
-
         case wspr::WsprMessageType::Type3:
             std::cout
                 << "TYPE3 "
@@ -97,11 +95,53 @@ namespace
             break;
         }
     }
+
+    std::string type_to_string(wspr::WsprMessageType type)
+    {
+        switch (type)
+        {
+        case wspr::WsprMessageType::Type1:
+            return "TYPE1";
+        case wspr::WsprMessageType::Type2:
+            return "TYPE2";
+        case wspr::WsprMessageType::Type3:
+            return "TYPE3";
+        default:
+            return "UNKNOWN";
+        }
+    }
+
+    json message_to_json(const wspr::WsprDecodedMessage &message)
+    {
+        json j;
+
+        j["type"] = type_to_string(message.type);
+        j["callsign"] = message.callsign;
+        j["power_dbm"] = message.power_dbm;
+        j["is_partial"] = message.is_partial;
+        j["has_hash"] = message.has_hash;
+        j["has_ambiguity"] = message.has_ambiguity;
+
+        if (!message.locator.empty())
+            j["locator"] = message.locator;
+
+        if (!message.extra.empty())
+            j["extra"] = message.extra;
+
+        if (message.has_hash)
+            j["hash"] = message.callsign_hash;
+
+        if (message.has_ambiguity)
+            j["alternate_extra"] = message.alternate_extra;
+
+        return j;
+    }
 } // namespace
 
 int main(int argc, char **argv)
 {
     bool quiet = false;
+    bool json_mode = false;
     int argi = 1;
 
     while (argi < argc)
@@ -115,12 +155,26 @@ int main(int argc, char **argv)
             continue;
         }
 
+        if (arg == "--json")
+        {
+            json_mode = true;
+            ++argi;
+            continue;
+        }
+
         break;
+    }
+
+    if (quiet && json_mode)
+    {
+        std::cerr << "Use either --quiet or --json, not both.\n";
+        return 1;
     }
 
     if ((argc - argi) != 1)
     {
-        std::cerr << "Usage: wspr-decode [--quiet] <162-symbol-string>\n";
+        std::cerr
+            << "Usage: wspr-decode [--quiet|--json] <162-symbol-string>\n";
         return 1;
     }
 
@@ -154,6 +208,12 @@ int main(int argc, char **argv)
             wspr::WSPR_PAYLOAD_BIT_COUNT,
             message))
     {
+        if (json_mode)
+        {
+            std::cout << message_to_json(message).dump(2) << "\n";
+            return 0;
+        }
+
         if (quiet)
         {
             print_quiet_message(message);
@@ -180,6 +240,12 @@ int main(int argc, char **argv)
             wspr::WSPR_PAYLOAD_BIT_COUNT,
             message))
     {
+        if (json_mode)
+        {
+            std::cout << message_to_json(message).dump(2) << "\n";
+            return 0;
+        }
+
         if (quiet)
         {
             print_quiet_message(message);
@@ -206,6 +272,12 @@ int main(int argc, char **argv)
             wspr::WSPR_PAYLOAD_BIT_COUNT,
             message))
     {
+        if (json_mode)
+        {
+            std::cout << message_to_json(message).dump(2) << "\n";
+            return 0;
+        }
+
         if (quiet)
         {
             print_quiet_message(message);
@@ -224,6 +296,15 @@ int main(int argc, char **argv)
 
         print_payload_bits(payload_bits);
         print_type3_message(message);
+        return 0;
+    }
+
+    if (json_mode)
+    {
+        json j;
+        j["type"] = "UNKNOWN";
+        j["error"] = "No message type unpack succeeded.";
+        std::cout << j.dump(2) << "\n";
         return 0;
     }
 
