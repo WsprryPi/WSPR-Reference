@@ -24,8 +24,12 @@ namespace wspr
         std::string locator;
         int power_dbm = 0;
 
-        std::string extra; // for Type 2 prefix/suffix
+        std::string extra;
 
+        uint32_t callsign_hash = 0;
+        bool has_hash = false;
+
+        bool is_partial = false;
         std::string error;
     };
 
@@ -38,6 +42,11 @@ namespace wspr
             WsprDecodedMessage &message) const;
 
         bool unpack_type2(
+            const uint8_t *payload_bits,
+            std::size_t payload_bit_count,
+            WsprDecodedMessage &message) const;
+
+        bool unpack_type3(
             const uint8_t *payload_bits,
             std::size_t payload_bit_count,
             WsprDecodedMessage &message) const;
@@ -59,6 +68,18 @@ namespace wspr
             uint32_t m,
             std::string &locator,
             int &power_dbm) const;
+
+        uint32_t extract_type3_locator_value(
+            const uint8_t *payload_bits,
+            std::size_t payload_bit_count) const;
+
+        uint32_t extract_type3_hash_value(
+            const uint8_t *payload_bits,
+            std::size_t payload_bit_count) const;
+
+        bool unpack_locator_type3(
+            uint32_t locator_value,
+            std::string &locator) const;
     };
 } // namespace wspr
 
