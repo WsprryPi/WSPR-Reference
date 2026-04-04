@@ -343,3 +343,24 @@ target_compile_options(unpack_type3_roundtrip
         -Wextra
         -Wpedantic
 )
+
+add_executable(wspr-correlate
+    src/correlate_main.cpp
+    src/wspr/wspr_ref_decoder.cpp
+    src/wspr/wspr_ref_fano.cpp
+    src/wspr/wspr_ref_unpack.cpp
+    src/wspr/wspr_ref_correlator.cpp
+)
+
+target_include_directories(wspr-correlate
+    PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/src
+)
+
+target_compile_options(wspr-correlate
+    PRIVATE
+        -Wall
+        -Wextra
+        -Wpedantic
+        
+)
