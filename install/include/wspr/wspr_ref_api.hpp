@@ -5,8 +5,10 @@
 /// \brief High-level public API for WSPR encoding, decoding, and correlation.
 
 #include "wspr_ref_unpack.hpp"
+#include "wspr_ref_plan.hpp"
 
 #include <string>
+#include <vector>
 
 namespace wspr
 {
@@ -25,6 +27,8 @@ struct WsprEncodeResult
     int power_dbm = 0;
     /// \brief Encoded 162-symbol WSPR symbol stream.
     std::string symbols;
+    /// @brief List of symbol stream variants that decode to the same message. This is empty when \ref ok is false.
+    std::vector<std::string> symbols_list;
     /// \brief Error text when \ref ok is false.
     std::string error;
 };
@@ -55,6 +59,18 @@ WsprEncodeResult encode_message(
     const std::string& callsign,
     const std::string& locator,
     int power_dbm);
+
+/// \brief Encode a WSPR message into its 162-symbol channel representation.
+/// \param callsign Callsign text. A slash indicates Type 2, and angle brackets indicate Type 3.
+/// \param locator Maidenhead locator. A 6-character locator also implies Type 3.
+/// \param power_dbm Transmit power in dBm.
+/// \param preference Transmission plan preference. This is only a hint and does not guarantee a specific plan type.
+/// \return An encoding result containing the symbol stream or an error.
+WsprEncodeResult encode_message(
+    const std::string& callsign,
+    const std::string& locator,
+    int power_dbm,
+    TransmissionPlanPreference preference);
 
 /// \brief Decode a 162-symbol WSPR stream into a structured message.
 /// \param symbols Symbol text containing digits in the range 0-3.

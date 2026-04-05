@@ -44,6 +44,18 @@ namespace wspr
     WsprEncodeResult encode_message(
         const std::string &callsign,
         const std::string &locator,
+        int power_dbm)
+    {
+        return encode_message(
+            callsign,
+            locator,
+            power_dbm,
+            TransmissionPlanPreference::Auto);
+    }
+
+    WsprEncodeResult encode_message(
+        const std::string &callsign,
+        const std::string &locator,
         int power_dbm,
         TransmissionPlanPreference preference)
     {
