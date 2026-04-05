@@ -1,6 +1,6 @@
 # WSPR Reference Implementation
 
-[![CI](https://github.com/WsprryPi/WSPR-Reference/actions/workflows/ci.yml/badge.svg)](https://github.com/WsprryPi/WSPR-Reference/actions)
+[![CI](https://github.com/WsprryPi/WSPR-Reference/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/WsprryPi/WSPR-Reference/actions/workflows/ci.yml)
 [![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 
 A correctness-first WSPR reference encoder/decoder with explicit ambiguity handling.
