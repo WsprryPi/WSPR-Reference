@@ -4,6 +4,7 @@
 #include "wspr_ref_correlator.hpp"
 #include "wspr_ref_decoder.hpp"
 #include "wspr_ref_encoder.hpp"
+#include "wspr_ref_plan.hpp"
 
 #include <cstddef>
 #include <cstdint>
@@ -12,160 +13,194 @@
 
 namespace
 {
-bool validate_symbol_stream(const uint8_t* symbols, std::size_t count)
-{
-    if (symbols == nullptr)
-        return false;
-
-    for (std::size_t i = 0; i < count; ++i)
+    bool validate_symbol_stream(const uint8_t *symbols, std::size_t count)
     {
-        if (symbols[i] > 3U)
+        if (symbols == nullptr)
             return false;
+
+        for (std::size_t i = 0; i < count; ++i)
+        {
+            if (symbols[i] > 3U)
+                return false;
+        }
+
+        return true;
     }
 
-    return true;
-}
-
-std::string detect_type(
-    const std::string& callsign,
-    const std::string& locator)
-{
-    if (!callsign.empty() &&
-        callsign.front() == '<' &&
-        callsign.back() == '>')
+    std::string detect_type(
+        const std::string &callsign,
+        const std::string &locator)
     {
-        return "TYPE3";
+        if (!callsign.empty() &&
+            callsign.front() == '<' &&
+            callsign.back() == '>')
+        {
+            return "TYPE3";
+        }
+
+        if (callsign.find('/') != std::string::npos)
+            return "TYPE2";
+
+        if (locator.size() == 6)
+            return "TYPE3";
+
+        return "TYPE1";
     }
 
-    if (callsign.find('/') != std::string::npos)
-        return "TYPE2";
+    std::string symbols_to_string(const uint8_t *symbols, std::size_t count)
+    {
+        std::string out;
+        out.reserve(count);
 
-    if (locator.size() == 6)
-        return "TYPE3";
+        for (std::size_t i = 0; i < count; ++i)
+            out.push_back(static_cast<char>('0' + symbols[i]));
 
-    return "TYPE1";
-}
-
-std::string symbols_to_string(const uint8_t* symbols, std::size_t count)
-{
-    std::string out;
-    out.reserve(count);
-
-    for (std::size_t i = 0; i < count; ++i)
-        out.push_back(static_cast<char>('0' + symbols[i]));
-
-    return out;
-}
+        return out;
+    }
 } // namespace
 
 namespace wspr
 {
-WsprEncodeResult encode_message(
-    const std::string& callsign,
-    const std::string& locator,
-    int power_dbm)
-{
-    WsprEncodeResult result;
-    result.callsign = callsign;
-    result.locator = locator;
-    result.power_dbm = power_dbm;
-    result.type = detect_type(callsign, locator);
-
-    WsprRefEncoder encoder;
-    uint8_t symbols[WSPR_SYMBOL_COUNT] = {};
-    std::memset(symbols, 0, sizeof(symbols));
-
-    encoder.wspr_encode(
-        callsign.c_str(),
-        locator.c_str(),
-        static_cast<int8_t>(power_dbm),
-        symbols);
-
-    if (!validate_symbol_stream(symbols, WSPR_SYMBOL_COUNT))
+    WsprEncodeResult encode_message(
+        const std::string &callsign,
+        const std::string &locator,
+        int power_dbm)
     {
-        result.error = "Generated symbol stream is invalid.";
+        WsprEncodeResult result;
+        auto plan = plan_transmission(
+            callsign,
+            locator,
+            power_dbm,
+            TransmissionPlanPreference::Auto);
+
+        result.callsign = callsign;
+        result.locator = locator;
+        result.power_dbm = power_dbm;
+
+        if (!plan.ok)
+        {
+            result.error = plan.message;
+            return result;
+        }
+
+        WsprRefEncoder encoder;
+        uint8_t symbols[WSPR_SYMBOL_COUNT] = {};
+        std::memset(symbols, 0, sizeof(symbols));
+
+        switch (plan.plan)
+        {
+        case TransmissionPlanType::Type1Single:
+        case TransmissionPlanType::Type2Single:
+        case TransmissionPlanType::Type3Single:
+        {
+            encoder.wspr_encode(
+                plan.normalized_callsign.c_str(),
+                plan.normalized_locator.c_str(),
+                static_cast<int8_t>(plan.power_dbm),
+                symbols);
+
+            result.type = to_string(plan.plan);
+            break;
+        }
+
+        case TransmissionPlanType::Type2Type3Paired:
+        {
+            result.error = "Paired transmission not yet implemented.";
+            return result;
+        }
+
+        default:
+        {
+            result.error = "Invalid transmission plan.";
+            return result;
+        }
+        }
+
+        if (!validate_symbol_stream(symbols, WSPR_SYMBOL_COUNT))
+        {
+            result.error = "Generated symbol stream is invalid.";
+            return result;
+        }
+
+        result.symbols = symbols_to_string(symbols, WSPR_SYMBOL_COUNT);
+        result.ok = true;
         return result;
     }
 
-    result.symbols = symbols_to_string(symbols, WSPR_SYMBOL_COUNT);
-    result.ok = true;
-    return result;
-}
+    bool decode_symbols(
+        const std::string &symbols,
+        WsprDecodedMessage &message,
+        std::string &error)
+    {
+        WsprRefDecoder decoder;
+        WsprRefUnpacker unpacker;
+        uint8_t payload_bits[WSPR_PAYLOAD_BIT_COUNT] = {};
 
-bool decode_symbols(
-    const std::string& symbols,
-    WsprDecodedMessage& message,
-    std::string& error)
-{
-    WsprRefDecoder decoder;
-    WsprRefUnpacker unpacker;
-    uint8_t payload_bits[WSPR_PAYLOAD_BIT_COUNT] = {};
+        message = WsprDecodedMessage{};
+        error.clear();
 
-    message = WsprDecodedMessage{};
-    error.clear();
+        if (!decoder.decode_payload_bits_from_symbols(symbols, payload_bits, error))
+            return false;
 
-    if (!decoder.decode_payload_bits_from_symbols(symbols, payload_bits, error))
+        if (unpacker.unpack_type1(payload_bits, WSPR_PAYLOAD_BIT_COUNT, message))
+            return true;
+
+        if (unpacker.unpack_type2(payload_bits, WSPR_PAYLOAD_BIT_COUNT, message))
+            return true;
+
+        if (unpacker.unpack_type3(payload_bits, WSPR_PAYLOAD_BIT_COUNT, message))
+            return true;
+
+        error = "No unpacker recognized the payload.";
         return false;
-
-    if (unpacker.unpack_type1(payload_bits, WSPR_PAYLOAD_BIT_COUNT, message))
-        return true;
-
-    if (unpacker.unpack_type2(payload_bits, WSPR_PAYLOAD_BIT_COUNT, message))
-        return true;
-
-    if (unpacker.unpack_type3(payload_bits, WSPR_PAYLOAD_BIT_COUNT, message))
-        return true;
-
-    error = "No unpacker recognized the payload.";
-    return false;
-}
-
-bool correlate_messages(
-    const WsprDecodedMessage& a,
-    const WsprDecodedMessage& b,
-    WsprDecodedMessage& resolved,
-    std::string& error)
-{
-    WsprRefCorrelator correlator;
-
-    resolved = WsprDecodedMessage{};
-    error.clear();
-
-    correlator.add_message(a);
-    correlator.add_message(b);
-
-    if (correlator.try_resolve_last(resolved))
-        return true;
-
-    error = "No correlated result available.";
-    return false;
-}
-
-WsprCorrelateResult correlate_symbol_streams(
-    const std::string& symbols1,
-    const std::string& symbols2)
-{
-    WsprCorrelateResult result;
-    std::string error;
-
-    if (!decode_symbols(symbols1, result.message1, error))
-    {
-        result.error = "Failed to decode first message: " + error;
-        return result;
     }
 
-    if (!decode_symbols(symbols2, result.message2, error))
+    bool correlate_messages(
+        const WsprDecodedMessage &a,
+        const WsprDecodedMessage &b,
+        WsprDecodedMessage &resolved,
+        std::string &error)
     {
-        result.error = "Failed to decode second message: " + error;
-        return result;
+        WsprRefCorrelator correlator;
+
+        resolved = WsprDecodedMessage{};
+        error.clear();
+
+        correlator.add_message(a);
+        correlator.add_message(b);
+
+        if (correlator.try_resolve_last(resolved))
+            return true;
+
+        error = "No correlated result available.";
+        return false;
     }
 
-    result.ok = true;
-    result.correlated = correlate_messages(
-        result.message1,
-        result.message2,
-        result.resolved,
-        result.error);
-    return result;
-}
+    WsprCorrelateResult correlate_symbol_streams(
+        const std::string &symbols1,
+        const std::string &symbols2)
+    {
+        WsprCorrelateResult result;
+        std::string error;
+
+        if (!decode_symbols(symbols1, result.message1, error))
+        {
+            result.error = "Failed to decode first message: " + error;
+            return result;
+        }
+
+        if (!decode_symbols(symbols2, result.message2, error))
+        {
+            result.error = "Failed to decode second message: " + error;
+            return result;
+        }
+
+        result.ok = true;
+        result.correlated = correlate_messages(
+            result.message1,
+            result.message2,
+            result.resolved,
+            result.error);
+        return result;
+    }
 } // namespace wspr

@@ -9,6 +9,15 @@
 namespace
 {
     using json = nlohmann::json;
+
+    std::string cli_type_from_plan(const std::string& plan_type)
+    {
+        if (plan_type == "Type1Single") return "TYPE1";
+        if (plan_type == "Type2Single") return "TYPE2";
+        if (plan_type == "Type3Single") return "TYPE3";
+        if (plan_type == "Type2Type3Paired") return "TYPE2+TYPE3";
+        return "UNKNOWN";
+    }
 } // namespace
 
 int main(int argc, char **argv)
@@ -75,10 +84,12 @@ int main(int argc, char **argv)
         return 1;
     }
 
+    const std::string cli_type = cli_type_from_plan(result.type);
+
     if (json_mode)
     {
         json j;
-        j["type"] = result.type;
+        j["type"] = cli_type;
         j["callsign"] = result.callsign;
         j["locator"] = result.locator;
         j["power_dbm"] = result.power_dbm;
@@ -94,7 +105,7 @@ int main(int argc, char **argv)
         return 0;
     }
 
-    std::cout << "Type: " << result.type << "\n";
+    std::cout << "Type: " << cli_type << "\n";
     std::cout << "Callsign: " << result.callsign << "\n";
     std::cout << "Locator: " << result.locator << "\n";
     std::cout << "Power: " << result.power_dbm << " dBm\n";
