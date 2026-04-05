@@ -1,0 +1,12 @@
+/Users/lbussy/Library/CloudStorage/OneDrive-Personal/Documents/GitHub/wspr-ref/install/lib/libwspr_ref_lib.a
+/Users/lbussy/Library/CloudStorage/OneDrive-Personal/Documents/GitHub/wspr-ref/install/include/wspr/wspr_ref_unpack.hpp
+/Users/lbussy/Library/CloudStorage/OneDrive-Personal/Documents/GitHub/wspr-ref/install/include/wspr/wspr_ref_api.hpp
+/Users/lbussy/Library/CloudStorage/OneDrive-Personal/Documents/GitHub/wspr-ref/install/include/wspr/wspr_ref_correlator.hpp
+/Users/lbussy/Library/CloudStorage/OneDrive-Personal/Documents/GitHub/wspr-ref/install/include/wspr/wspr_ref_encoder.hpp
+/Users/lbussy/Library/CloudStorage/OneDrive-Personal/Documents/GitHub/wspr-ref/install/include/wspr/wspr_ref_fano.hpp
+/Users/lbussy/Library/CloudStorage/OneDrive-Personal/Documents/GitHub/wspr-ref/install/include/wspr/wspr_constants.hpp
+/Users/lbussy/Library/CloudStorage/OneDrive-Personal/Documents/GitHub/wspr-ref/install/include/wspr/wspr_ref_decoder.hpp
+/Users/lbussy/Library/CloudStorage/OneDrive-Personal/Documents/GitHub/wspr-ref/install/lib/cmake/wspr_ref/wspr_refTargets.cmake
+/Users/lbussy/Library/CloudStorage/OneDrive-Personal/Documents/GitHub/wspr-ref/install/lib/cmake/wspr_ref/wspr_refTargets-noconfig.cmake
+/Users/lbussy/Library/CloudStorage/OneDrive-Personal/Documents/GitHub/wspr-ref/install/lib/cmake/wspr_ref/wspr_refConfig.cmake
+/Users/lbussy/Library/CloudStorage/OneDrive-Personal/Documents/GitHub/wspr-ref/install/lib/cmake/wspr_ref/wspr_refConfigVersion.cmake

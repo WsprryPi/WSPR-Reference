@@ -2,6 +2,9 @@ cmake_minimum_required(VERSION 3.16)
 
 project(wspr_ref LANGUAGES CXX)
 
+include(GNUInstallDirs)
+include(CMakePackageConfigHelpers)
+
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
@@ -15,10 +18,13 @@ add_library(wspr_ref_lib
     src/wspr/wspr_ref_unpack.cpp
 )
 
+add_library(wspr::wspr_ref_lib ALIAS wspr_ref_lib)
+
 target_include_directories(wspr_ref_lib
     PUBLIC
-        ${CMAKE_CURRENT_SOURCE_DIR}/src
-        ${CMAKE_CURRENT_SOURCE_DIR}/include
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+        $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
 )
 
 target_compile_options(wspr_ref_lib
@@ -185,3 +191,44 @@ add_executable(api_example
 )
 target_link_libraries(api_example PRIVATE wspr_ref_lib)
 wspr_ref_target(api_example)
+
+install(
+    TARGETS wspr_ref_lib
+    EXPORT wspr_refTargets
+    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+)
+
+install(
+    DIRECTORY
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/wspr/
+    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/wspr
+    FILES_MATCHING PATTERN "*.hpp"
+)
+
+install(
+    EXPORT wspr_refTargets
+    FILE wspr_refTargets.cmake
+    NAMESPACE wspr::
+    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/wspr_ref
+)
+
+configure_package_config_file(
+    ${CMAKE_CURRENT_SOURCE_DIR}/cmake/wspr_refConfig.cmake.in
+    ${CMAKE_CURRENT_BINARY_DIR}/wspr_refConfig.cmake
+    INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/wspr_ref
+)
+
+write_basic_package_version_file(
+    ${CMAKE_CURRENT_BINARY_DIR}/wspr_refConfigVersion.cmake
+    VERSION 0.14.1
+    COMPATIBILITY SameMajorVersion
+)
+
+install(
+    FILES
+        ${CMAKE_CURRENT_BINARY_DIR}/wspr_refConfig.cmake
+        ${CMAKE_CURRENT_BINARY_DIR}/wspr_refConfigVersion.cmake
+    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/wspr_ref
+)
