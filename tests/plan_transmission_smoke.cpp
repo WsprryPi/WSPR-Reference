@@ -70,7 +70,15 @@ int main()
          wspr::TransmissionPlanPreference::RequirePaired,
          wspr::TransmissionPlanType::Invalid,
          wspr::TransmissionPlanStatus::PairedTransmissionRequiresExtendedIdentity,
-         false}};
+         false},
+        {"W1/K1ABC",
+         "FN20AB",
+         30,
+         wspr::TransmissionPlanPreference::RequirePaired,
+         wspr::TransmissionPlanType::Type2Type3Paired,
+         wspr::TransmissionPlanStatus::Ok,
+         true},
+    };
 
     bool all_pass = true;
 
@@ -110,6 +118,19 @@ int main()
         std::cout << "  Test result:      "
                   << (pass ? "PASS" : "FAIL")
                   << "\n\n";
+
+        if (pass &&
+            tc.expected_plan == wspr::TransmissionPlanType::Type2Type3Paired)
+        {
+            if (result.type2_callsign.empty() ||
+                result.type2_locator.empty() ||
+                result.type3_callsign.empty() ||
+                result.type3_locator.empty())
+            {
+                std::cout << "  Missing paired planning fields.\n";
+                all_pass = false;
+            }
+        }
 
         if (!pass)
             all_pass = false;

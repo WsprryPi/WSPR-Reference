@@ -302,12 +302,42 @@ namespace wspr
 
         if (is_compound_callsign(normalized_callsign))
         {
+            if (normalized_locator.size() == 6 &&
+                (preference == TransmissionPlanPreference::PreferPaired ||
+                 preference == TransmissionPlanPreference::RequirePaired))
+            {
+                auto result = make_success_result(
+                    TransmissionPlanType::Type2Type3Paired,
+                    normalized_callsign,
+                    normalized_locator,
+                    power_dbm,
+                    preference,
+                    "Planned paired Type 2 and Type 3 transmission.");
+
+                result.requires_correlation = true;
+                result.pairing_requested = true;
+                result.pairing_required =
+                    (preference == TransmissionPlanPreference::RequirePaired);
+                result.requires_six_char_locator = true;
+
+                result.type2_callsign = normalized_callsign;
+                result.type2_locator = normalized_locator.substr(0, 4);
+
+                result.type3_callsign = "<" + normalized_callsign + ">";
+                result.type3_locator = normalized_locator;
+
+                result.primary_extra.clear();
+                result.alternate_extra.clear();
+
+                return result;
+            }
+
             if (normalized_locator.size() != 4)
             {
                 return make_error_result(
-                    TransmissionPlanStatus::Type1RequiresFourCharLocator,
-                    "Compound Type 2 callsigns currently require a 4-character locator.",
-                    "This first-pass planner only supports Type 2 single-message planning with 4-character locators.",
+                    TransmissionPlanStatus::InvalidLocator,
+                    "Compound callsigns require either a 4-character locator for single Type 2 or a 6-character locator for paired planning.",
+                    "Use a 4-character locator for Type 2 single-message transmission, or use a 6-character locator with PreferPaired or RequirePaired.",
                     normalized_callsign,
                     normalized_locator,
                     power_dbm,
@@ -332,7 +362,7 @@ namespace wspr
                 result.pairing_requested = true;
                 result.severity = TransmissionPlanSeverity::Warning;
                 result.rationale =
-                    "Paired transmission was requested, but this first-pass planner currently selects Type 2 single-message mode for slash-form callsigns.";
+                    "Paired transmission was requested, but a 6-character locator is required to produce a paired Type 2 and Type 3 plan.";
             }
 
             return result;
