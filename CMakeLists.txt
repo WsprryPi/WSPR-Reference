@@ -16,6 +16,7 @@ add_library(wspr_ref_lib
     src/wspr/wspr_ref_encoder.cpp
     src/wspr/wspr_ref_fano.cpp
     src/wspr/wspr_ref_unpack.cpp
+    src/wspr/wspr_ref_plan.cpp
 )
 
 add_library(wspr::wspr_ref_lib ALIAS wspr_ref_lib)
@@ -232,3 +233,9 @@ install(
         ${CMAKE_CURRENT_BINARY_DIR}/wspr_refConfigVersion.cmake
     DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/wspr_ref
 )
+
+add_executable(plan_transmission_smoke
+    tests/plan_transmission_smoke.cpp
+)
+target_link_libraries(plan_transmission_smoke PRIVATE wspr_ref_lib)
+wspr_ref_target(plan_transmission_smoke)
