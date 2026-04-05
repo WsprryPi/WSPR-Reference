@@ -7,6 +7,7 @@
 #include "wspr_ref_unpack.hpp"
 
 #include <string>
+#include <vector>
 
 namespace wspr
 {
@@ -25,6 +26,8 @@ struct WsprEncodeResult
     int power_dbm = 0;
     /// \brief Encoded 162-symbol WSPR symbol stream.
     std::string symbols;
+    /// @brief List of symbol stream variants that decode to the same message. This is empty when \ref ok is false.
+    std::vector<std::string> symbols_list;
     /// \brief Error text when \ref ok is false.
     std::string error;
 };

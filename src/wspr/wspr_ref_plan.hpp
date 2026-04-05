@@ -141,6 +141,26 @@ namespace wspr
         int power_dbm = 0;
 
         /**
+         * @brief Type 2 callsign after normalization and validation
+         */
+        std::string type2_callsign;
+
+        /**
+         * @brief Type 2 locator when the plan involves a Type 2 transmission
+         */
+        std::string type2_locator;
+
+        /**
+         * @brief Type 3 callsign after normalization and validation
+         */
+        std::string type3_callsign;
+
+        /**
+         * @brief Type 3 locator when the plan involves a Type 3 transmission
+         */
+        std::string type3_locator;
+
+        /**
          * @brief Primary decoded or planned Type 2 extra field when relevant
          */
         std::string primary_extra;

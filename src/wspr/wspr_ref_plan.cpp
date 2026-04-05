@@ -293,6 +293,10 @@ namespace wspr
                 power_dbm,
                 preference,
                 "Planned explicit Type 3 transmission.");
+            result.type2_callsign.clear();
+            result.type2_locator.clear();
+            result.type3_callsign.clear();
+            result.type3_locator.clear();
             return result;
         }
 
@@ -317,6 +321,10 @@ namespace wspr
                 power_dbm,
                 preference,
                 "Planned Type 2 single-message transmission.");
+            result.type2_callsign.clear();
+            result.type2_locator.clear();
+            result.type3_callsign.clear();
+            result.type3_locator.clear();
 
             if (preference == TransmissionPlanPreference::PreferPaired ||
                 preference == TransmissionPlanPreference::RequirePaired)
@@ -394,6 +402,10 @@ namespace wspr
             power_dbm,
             preference,
             "Planned Type 1 single-message transmission.");
+        result.type2_callsign.clear();
+        result.type2_locator.clear();
+        result.type3_callsign.clear();
+        result.type3_locator.clear();
 
         if (preference == TransmissionPlanPreference::PreferPaired ||
             preference == TransmissionPlanPreference::RequirePaired)

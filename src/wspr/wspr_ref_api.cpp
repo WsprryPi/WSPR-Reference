@@ -27,26 +27,6 @@ namespace
         return true;
     }
 
-    std::string detect_type(
-        const std::string &callsign,
-        const std::string &locator)
-    {
-        if (!callsign.empty() &&
-            callsign.front() == '<' &&
-            callsign.back() == '>')
-        {
-            return "TYPE3";
-        }
-
-        if (callsign.find('/') != std::string::npos)
-            return "TYPE2";
-
-        if (locator.size() == 6)
-            return "TYPE3";
-
-        return "TYPE1";
-    }
-
     std::string symbols_to_string(const uint8_t *symbols, std::size_t count)
     {
         std::string out;
@@ -105,7 +85,9 @@ namespace wspr
 
         case TransmissionPlanType::Type2Type3Paired:
         {
-            result.error = "Paired transmission not yet implemented.";
+            result.error =
+                "Paired transmission planning is present, but paired encoding "
+                "is not yet implemented.";
             return result;
         }
 
@@ -123,6 +105,8 @@ namespace wspr
         }
 
         result.symbols = symbols_to_string(symbols, WSPR_SYMBOL_COUNT);
+        result.symbols_list.clear();
+        result.symbols_list.push_back(result.symbols);
         result.ok = true;
         return result;
     }
