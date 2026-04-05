@@ -10,12 +10,16 @@ namespace
 {
     using json = nlohmann::json;
 
-    std::string cli_type_from_plan(const std::string& plan_type)
+    std::string cli_type_from_plan(const std::string &plan_type)
     {
-        if (plan_type == "Type1Single") return "TYPE1";
-        if (plan_type == "Type2Single") return "TYPE2";
-        if (plan_type == "Type3Single") return "TYPE3";
-        if (plan_type == "Type2Type3Paired") return "TYPE2+TYPE3";
+        if (plan_type == "Type1Single")
+            return "TYPE1";
+        if (plan_type == "Type2Single")
+            return "TYPE2";
+        if (plan_type == "Type3Single")
+            return "TYPE3";
+        if (plan_type == "Type2Type3Paired")
+            return "TYPE2+TYPE3";
         return "UNKNOWN";
     }
 } // namespace
@@ -24,6 +28,7 @@ int main(int argc, char **argv)
 {
     bool quiet = false;
     bool json_mode = false;
+    bool require_paired = false;
     int argi = 1;
 
     while (argi < argc)
@@ -44,6 +49,13 @@ int main(int argc, char **argv)
             continue;
         }
 
+        if (arg == "--paired")
+        {
+            require_paired = true;
+            ++argi;
+            continue;
+        }
+
         break;
     }
 
@@ -56,7 +68,7 @@ int main(int argc, char **argv)
     if ((argc - argi) != 3)
     {
         std::cerr
-            << "Usage: wspr-encode [--quiet|--symbols-only|--json] "
+            << "Usage: wspr-encode [--quiet|--symbols-only|--json|--paired] "
             << "<callsign> <locator> <power_dbm>\n";
         return 1;
     }
@@ -76,7 +88,16 @@ int main(int argc, char **argv)
     }
 
     const wspr::WsprEncodeResult result =
-        wspr::encode_message(callsign, locator, power_dbm);
+        require_paired
+            ? wspr::encode_message(
+                  callsign,
+                  locator,
+                  power_dbm,
+                  wspr::TransmissionPlanPreference::RequirePaired)
+            : wspr::encode_message(
+                  callsign,
+                  locator,
+                  power_dbm);
 
     if (!result.ok)
     {
@@ -114,7 +135,7 @@ int main(int argc, char **argv)
     {
         if (is_paired)
         {
-            for (const auto& symbols : result.symbols_list)
+            for (const auto &symbols : result.symbols_list)
                 std::cout << symbols << "\n";
         }
         else
@@ -130,6 +151,9 @@ int main(int argc, char **argv)
     std::cout << "Callsign: " << result.callsign << "\n";
     std::cout << "Locator: " << result.locator << "\n";
     std::cout << "Power: " << result.power_dbm << " dBm\n";
+    std::cout << "Preference: "
+              << (require_paired ? "RequirePaired" : "Auto")
+              << "\n";
 
     if (is_paired)
     {
