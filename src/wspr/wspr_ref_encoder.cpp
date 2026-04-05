@@ -3,6 +3,7 @@
 #include <cctype>
 #include <cstddef>
 #include <cstdint>
+#include <cstdio>
 #include <cstring>
 
 namespace
@@ -490,8 +491,13 @@ namespace wspr
                 char base_call[7];
                 std::memset(prefix, 0, 4);
                 std::memset(base_call, 0, 7);
-                std::strncpy(prefix, callsign_, static_cast<std::size_t>(slash_pos));
-                std::strncpy(base_call, callsign_ + slash_pos + 1, 7);
+                ::strncpy(prefix, callsign_, static_cast<std::size_t>(slash_pos));
+                std::snprintf(
+                    base_call,
+                    sizeof(base_call),
+                    "%.*s",
+                    static_cast<int>(sizeof(base_call) - 1),
+                    callsign_ + slash_pos + 1);
 
                 if (prefix[2] == ' ' || prefix[2] == 0)
                 {
