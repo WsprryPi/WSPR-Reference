@@ -10,16 +10,12 @@ namespace
 {
     using json = nlohmann::json;
 
-    std::string cli_type_from_plan(const std::string &plan_type)
+    std::string cli_type_from_plan(const std::string& plan_type)
     {
-        if (plan_type == "Type1Single")
-            return "TYPE1";
-        if (plan_type == "Type2Single")
-            return "TYPE2";
-        if (plan_type == "Type3Single")
-            return "TYPE3";
-        if (plan_type == "Type2Type3Paired")
-            return "TYPE2+TYPE3";
+        if (plan_type == "Type1Single") return "TYPE1";
+        if (plan_type == "Type2Single") return "TYPE2";
+        if (plan_type == "Type3Single") return "TYPE3";
+        if (plan_type == "Type2Type3Paired") return "TYPE2+TYPE3";
         return "UNKNOWN";
     }
 } // namespace
@@ -89,21 +85,25 @@ int main(int argc, char **argv)
     }
 
     const std::string cli_type = cli_type_from_plan(result.type);
+    const bool is_paired = result.symbols_list.size() > 1;
 
     if (json_mode)
     {
         json j;
         j["type"] = cli_type;
+        j["plan_type"] = result.type;
         j["callsign"] = result.callsign;
         j["locator"] = result.locator;
         j["power_dbm"] = result.power_dbm;
-        if (result.symbols_list.size() <= 1)
+        j["message_count"] = result.symbols_list.size();
+
+        if (is_paired)
         {
-            j["symbols"] = result.symbols;
+            j["symbols_list"] = result.symbols_list;
         }
         else
         {
-            j["symbols_list"] = result.symbols_list;
+            j["symbols"] = result.symbols;
         }
 
         std::cout << j.dump(2) << "\n";
@@ -112,30 +112,37 @@ int main(int argc, char **argv)
 
     if (quiet)
     {
-        if (result.symbols_list.size() <= 1)
+        if (is_paired)
         {
-            std::cout << result.symbols << "\n";
+            for (const auto& symbols : result.symbols_list)
+                std::cout << symbols << "\n";
         }
         else
         {
-            for (const auto &symbols : result.symbols_list)
-                std::cout << symbols << "\n";
+            std::cout << result.symbols << "\n";
         }
+
         return 0;
     }
 
     std::cout << "Type: " << cli_type << "\n";
+    std::cout << "Plan type: " << result.type << "\n";
     std::cout << "Callsign: " << result.callsign << "\n";
     std::cout << "Locator: " << result.locator << "\n";
     std::cout << "Power: " << result.power_dbm << " dBm\n";
-    if (result.symbols_list.size() <= 1)
+
+    if (is_paired)
     {
-        std::cout << "Symbols: " << result.symbols << "\n";
+        std::cout << "Message count: " << result.symbols_list.size() << "\n";
+        for (std::size_t i = 0; i < result.symbols_list.size(); ++i)
+        {
+            std::cout << "Symbols " << (i + 1) << ": "
+                      << result.symbols_list[i] << "\n";
+        }
     }
     else
     {
-        std::cout << "Symbols 1: " << result.symbols_list[0] << "\n";
-        std::cout << "Symbols 2: " << result.symbols_list[1] << "\n";
+        std::cout << "Symbols: " << result.symbols << "\n";
     }
 
     return 0;
