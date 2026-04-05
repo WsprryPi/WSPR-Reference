@@ -178,7 +178,7 @@ the case as an unexpected regression failure.
 In other words, the overlap harness is observational coverage, not a strict
 conformance failure for known ambiguous values.
 
-## Reusable Library API
+## Reusable Library 
 
 The codebase now exposes a small reusable API in:
 
@@ -204,6 +204,8 @@ The CLI tools are thin wrappers over this API.
 
 ## Tiny API Usage Example
 
+A minimal buildable example is provided in `examples/api_example.cpp`.
+
 A minimal example using the reusable API:
 
 ```cpp
@@ -215,7 +217,7 @@ A minimal example using the reusable API:
 int main()
 {
     const auto encoded = wspr::encode_message("K1ABC", "FN20", 30);
-    if (!encoded.ok)
+    if (!encoded.ok)API
     {
         std::cerr << encoded.error << "\n";
         return 1;

@@ -179,3 +179,9 @@ add_executable(unpack_type2_ambiguity
 )
 target_link_libraries(unpack_type2_ambiguity PRIVATE wspr_ref_lib)
 wspr_ref_target(unpack_type2_ambiguity)
+
+add_executable(api_example
+    examples/api_example.cpp
+)
+target_link_libraries(api_example PRIVATE wspr_ref_lib)
+wspr_ref_target(api_example)

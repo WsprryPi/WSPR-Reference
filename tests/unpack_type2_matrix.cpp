@@ -46,7 +46,7 @@ int main()
 
     bool all_pass = true;
 
-    for (const auto& tc : cases)
+    for (const auto &tc : cases)
     {
         uint8_t symbols[wspr::WSPR_SYMBOL_COUNT] = {};
         uint8_t payload_bits[wspr::WSPR_PAYLOAD_BIT_COUNT] = {};
