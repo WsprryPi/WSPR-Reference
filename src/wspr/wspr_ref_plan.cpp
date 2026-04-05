@@ -370,6 +370,23 @@ namespace wspr
                 preference);
         }
 
+        if (preference == TransmissionPlanPreference::RequirePaired)
+        {
+            auto result = make_error_result(
+                TransmissionPlanStatus::PairedTransmissionRequiresExtendedIdentity,
+                "Paired transmission requires an extended or compound identity.",
+                "A plain Type 1 callsign with a 4-character locator cannot satisfy RequirePaired. "
+                "Use a compound Type 2 form or explicit Type 3 form with a 6-character locator.",
+                normalized_callsign,
+                normalized_locator,
+                power_dbm,
+                preference);
+            result.pairing_requested = true;
+            result.pairing_required = false;
+            result.requires_six_char_locator = true;
+            return result;
+        }
+
         auto result = make_success_result(
             TransmissionPlanType::Type1Single,
             normalized_callsign,
