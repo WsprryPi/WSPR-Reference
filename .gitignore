@@ -1,7 +1,11 @@
-# Build artifacts
+# Build directories
 build/
-CMakeFiles/
+build-*/
+install/
+
+# CMake
 CMakeCache.txt
+CMakeFiles/
 cmake_install.cmake
 Makefile
 
