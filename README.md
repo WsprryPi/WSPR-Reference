@@ -12,22 +12,8 @@ cmake -S . -B build
 cmake --build build
 
 ./build/wspr-encode K1ABC FN20 30
-./build/wspr-decode <symbols>
-./build/wspr-correlate <type2_symbols> <type3_symbols>
-```
-
-## Example Output
-
-```text
-Encoded symbols: 3300200210221110...
-
-Decoded callsign: K1ABC
-Decoded locator:  FN20
-Decoded power:    30
-
-Correlated callsign: <hashed>/12
-Correlated locator:  FN20AB
-Correlated power:    30
+./build/wspr-decode --quiet 330020021022111022120121133220000232032322002012130033030021303020033032301010232030110201323012223220221021021112330211212021312202030320112222222330323322013222
+./build/wspr-correlate --quiet 330220021020113022100321133020200230032120022210130233030001301022033232321210012232130003103030203220001221023112330233230223312202030122132020202132103322031020 332002201020111022320121311022222212032302022230130033230021301202031232301032230032310221303032221222201023223312130031030203132200010100132000220330303120213202
 ```
 
 ## Overview
@@ -61,7 +47,30 @@ It supports:
 ```bash
 ./build/wspr-encode K1ABC FN20 30
 ./build/wspr-encode --quiet K1ABC FN20 30
+./build/wspr-encode --symbols-only K1ABC FN20 30
 ./build/wspr-encode --json K1ABC FN20 30
+```
+
+Default output:
+
+```text
+Type: TYPE1
+Callsign: K1ABC
+Locator: FN20
+Power: 30 dBm
+Symbols: 330020021022111022120121133220000232032322002012130033030021303020033032301010232030110201323012223220221021021112330211212021312202030320112222222330323322013222
+```
+
+JSON output:
+
+```json
+{
+  "type": "TYPE1",
+  "callsign": "K1ABC",
+  "locator": "FN20",
+  "power_dbm": 30,
+  "symbols": "330020021022111022120121133220000232032322002012130033030021303020033032301010232030110201323012223220221021021112330211212021312202030320112222222330323322013222"
+}
 ```
 
 ### Decode
@@ -72,11 +81,83 @@ It supports:
 ./build/wspr-decode --json <symbols>
 ```
 
+Quiet output examples:
+
+```text
+TYPE1 K1ABC FN20 30
+TYPE2 <hashed> /09 30 ALT /Z
+TYPE3 <hashed> 6521 FN20AB 30
+```
+
+JSON fields:
+
+```json
+{
+  "type": "TYPE2",
+  "callsign": "<hashed>",
+  "power_dbm": 30,
+  "is_partial": true,
+  "has_hash": false,
+  "has_ambiguity": true,
+  "extra": "/09",
+  "alternate_extra": "/Z"
+}
+```
+
+When no message type unpacks successfully, `--json` emits:
+
+```json
+{
+  "type": "UNKNOWN",
+  "error": "No message type unpack succeeded."
+}
+```
+
 ### Correlate
 
 ```bash
+./build/wspr-correlate <symbols1> <symbols2>
 ./build/wspr-correlate --quiet <type2> <type3>
 ./build/wspr-correlate --json <type2> <type3>
+```
+
+Quiet output examples:
+
+```text
+CORRELATED TYPE2 <hashed>/12 6521 FN20AB 30
+CORRELATED TYPE2 <hashed>/09 6521 FN20AB 30 ALT /Z
+UNCORRELATED1 TYPE2 <hashed> /12 30
+UNCORRELATED2 TYPE3 <hashed> 6521 FN20AB 30
+```
+
+Correlated JSON output:
+
+```json
+{
+  "type": "TYPE2",
+  "callsign": "<hashed>/12",
+  "power_dbm": 30,
+  "is_partial": true,
+  "has_hash": true,
+  "has_ambiguity": false,
+  "locator": "FN20AB",
+  "hash": 6521,
+  "status": "CORRELATED"
+}
+```
+
+Uncorrelated JSON output contains:
+
+```json
+{
+  "status": "UNCORRELATED",
+  "message1": {
+    "type": "TYPE2"
+  },
+  "message2": {
+    "type": "TYPE3"
+  }
+}
 ```
 
 ## Type 2 Ambiguity Policy
@@ -116,11 +197,46 @@ cmake --build build
 cmake --install build --prefix ./install
 ```
 
+This installs the library, all public-facing headers under `include/wspr/`, and
+the exported CMake package files under `lib/cmake/wspr_ref/`.
+
 ## Using (CMake)
 
 ```cmake
 find_package(wspr_ref CONFIG REQUIRED)
 target_link_libraries(my_app PRIVATE wspr::wspr_ref_lib)
+```
+
+If installed under a custom prefix, point CMake at it:
+
+```bash
+cmake -S examples/consumer -B build-consumer -DCMAKE_PREFIX_PATH="$PWD/install"
+cmake --build build-consumer
+./build-consumer/consumer
+```
+
+Minimal consumer:
+
+```cpp
+#include "wspr/wspr_ref_api.hpp"
+
+#include <iostream>
+#include <string>
+
+int main()
+{
+    const auto encoded = wspr::encode_message("K1ABC", "FN20", 30);
+    if (!encoded.ok)
+        return 1;
+
+    wspr::WsprDecodedMessage decoded;
+    std::string error;
+    if (!wspr::decode_symbols(encoded.symbols, decoded, error))
+        return 1;
+
+    std::cout << decoded.callsign << "\n";
+    return 0;
+}
 ```
 
 ## Status

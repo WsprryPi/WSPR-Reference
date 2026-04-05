@@ -1,12 +1,16 @@
 #ifndef WSPR_REF_UNPACK_HPP
 #define WSPR_REF_UNPACK_HPP
 
+/// \file wspr_ref_unpack.hpp
+/// \brief Public message model and payload unpacking helpers.
+
 #include <cstddef>
 #include <cstdint>
 #include <string>
 
 namespace wspr
 {
+    /// \brief Supported WSPR message classifications.
     enum class WsprMessageType
     {
         Unknown = 0,
@@ -15,41 +19,70 @@ namespace wspr
         Type3
     };
 
+    /// \brief Structured decoded representation of a WSPR message.
     struct WsprDecodedMessage
     {
+        /// \brief True when the decoded message contents are valid.
         bool valid = false;
+        /// \brief Recognized WSPR message type.
         WsprMessageType type = WsprMessageType::Unknown;
 
+        /// \brief Callsign or placeholder callsign text.
         std::string callsign;
+        /// \brief Locator for Type 1 or Type 3 messages when available.
         std::string locator;
+        /// \brief Decoded transmit power in dBm.
         int power_dbm = 0;
 
+        /// \brief Type 2 suffix or prefix fragment when present.
         std::string extra;
 
+        /// \brief Decoded Type 3 callsign hash value.
         uint32_t callsign_hash = 0;
+        /// \brief True when \ref callsign_hash contains a meaningful value.
         bool has_hash = false;
 
+        /// \brief True when the decoded message is intentionally partial.
         bool is_partial = false;
 
+        /// \brief True when a Type 2 overlap decode has a preserved alternate interpretation.
         bool has_ambiguity = false;
+        /// \brief Alternate Type 2 suffix preserved for ambiguous overlap cases.
         std::string alternate_extra;
 
+        /// \brief Error text associated with the decoded message, if any.
         std::string error;
     };
 
+    /// \brief Unpacks recovered payload bits into supported WSPR message forms.
     class WsprRefUnpacker
     {
     public:
+        /// \brief Attempt to unpack a Type 1 message from payload bits.
+        /// \param payload_bits Input payload bits.
+        /// \param payload_bit_count Number of bits available in \p payload_bits.
+        /// \param message Receives the decoded message on success.
+        /// \return True if the payload matches a valid Type 1 message.
         bool unpack_type1(
             const uint8_t *payload_bits,
             std::size_t payload_bit_count,
             WsprDecodedMessage &message) const;
 
+        /// \brief Attempt to unpack a Type 2 message from payload bits.
+        /// \param payload_bits Input payload bits.
+        /// \param payload_bit_count Number of bits available in \p payload_bits.
+        /// \param message Receives the decoded message on success.
+        /// \return True if the payload matches a valid Type 2 message.
         bool unpack_type2(
             const uint8_t *payload_bits,
             std::size_t payload_bit_count,
             WsprDecodedMessage &message) const;
 
+        /// \brief Attempt to unpack a Type 3 message from payload bits.
+        /// \param payload_bits Input payload bits.
+        /// \param payload_bit_count Number of bits available in \p payload_bits.
+        /// \param message Receives the decoded message on success.
+        /// \return True if the payload matches a valid Type 3 message.
         bool unpack_type3(
             const uint8_t *payload_bits,
             std::size_t payload_bit_count,
