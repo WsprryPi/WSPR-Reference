@@ -10,12 +10,16 @@ namespace
 {
     using json = nlohmann::json;
 
-    std::string cli_type_from_plan(const std::string& plan_type)
+    std::string cli_type_from_plan(const std::string &plan_type)
     {
-        if (plan_type == "Type1Single") return "TYPE1";
-        if (plan_type == "Type2Single") return "TYPE2";
-        if (plan_type == "Type3Single") return "TYPE3";
-        if (plan_type == "Type2Type3Paired") return "TYPE2+TYPE3";
+        if (plan_type == "Type1Single")
+            return "TYPE1";
+        if (plan_type == "Type2Single")
+            return "TYPE2";
+        if (plan_type == "Type3Single")
+            return "TYPE3";
+        if (plan_type == "Type2Type3Paired")
+            return "TYPE2+TYPE3";
         return "UNKNOWN";
     }
 } // namespace
@@ -93,7 +97,14 @@ int main(int argc, char **argv)
         j["callsign"] = result.callsign;
         j["locator"] = result.locator;
         j["power_dbm"] = result.power_dbm;
-        j["symbols"] = result.symbols;
+        if (result.symbols_list.size() <= 1)
+        {
+            j["symbols"] = result.symbols;
+        }
+        else
+        {
+            j["symbols_list"] = result.symbols_list;
+        }
 
         std::cout << j.dump(2) << "\n";
         return 0;
@@ -101,7 +112,15 @@ int main(int argc, char **argv)
 
     if (quiet)
     {
-        std::cout << result.symbols << "\n";
+        if (result.symbols_list.size() <= 1)
+        {
+            std::cout << result.symbols << "\n";
+        }
+        else
+        {
+            for (const auto &symbols : result.symbols_list)
+                std::cout << symbols << "\n";
+        }
         return 0;
     }
 
@@ -109,7 +128,15 @@ int main(int argc, char **argv)
     std::cout << "Callsign: " << result.callsign << "\n";
     std::cout << "Locator: " << result.locator << "\n";
     std::cout << "Power: " << result.power_dbm << " dBm\n";
-    std::cout << "Symbols: " << result.symbols << "\n";
+    if (result.symbols_list.size() <= 1)
+    {
+        std::cout << "Symbols: " << result.symbols << "\n";
+    }
+    else
+    {
+        std::cout << "Symbols 1: " << result.symbols_list[0] << "\n";
+        std::cout << "Symbols 2: " << result.symbols_list[1] << "\n";
+    }
 
     return 0;
 }

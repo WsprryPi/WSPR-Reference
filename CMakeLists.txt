@@ -146,6 +146,12 @@ add_executable(correlator_smoke
 target_link_libraries(correlator_smoke PRIVATE wspr_ref_lib)
 wspr_ref_target(correlator_smoke)
 
+add_executable(encode_paired_smoke
+    tests/encode_paired_smoke.cpp
+)
+target_link_libraries(encode_paired_smoke PRIVATE wspr_ref_lib)
+wspr_ref_target(encode_paired_smoke)
+
 add_executable(unpack_type2_roundtrip
     tests/unpack_type2_roundtrip.cpp
 )

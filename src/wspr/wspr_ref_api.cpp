@@ -44,14 +44,15 @@ namespace wspr
     WsprEncodeResult encode_message(
         const std::string &callsign,
         const std::string &locator,
-        int power_dbm)
+        int power_dbm,
+        TransmissionPlanPreference preference)
     {
         WsprEncodeResult result;
         auto plan = plan_transmission(
             callsign,
             locator,
             power_dbm,
-            TransmissionPlanPreference::Auto);
+            preference);
 
         result.callsign = callsign;
         result.locator = locator;
@@ -85,9 +86,48 @@ namespace wspr
 
         case TransmissionPlanType::Type2Type3Paired:
         {
-            result.error =
-                "Paired transmission planning is present, but paired encoding "
-                "is not yet implemented.";
+            WsprRefEncoder paired_encoder;
+
+            uint8_t type2_symbols[WSPR_SYMBOL_COUNT] = {};
+            uint8_t type3_symbols[WSPR_SYMBOL_COUNT] = {};
+
+            paired_encoder.wspr_encode(
+                plan.type2_callsign.c_str(),
+                plan.type2_locator.c_str(),
+                static_cast<int8_t>(plan.power_dbm),
+                type2_symbols);
+
+            if (!validate_symbol_stream(type2_symbols, WSPR_SYMBOL_COUNT))
+            {
+                result.error = "Generated Type 2 symbol stream is invalid.";
+                return result;
+            }
+
+            paired_encoder.wspr_encode(
+                plan.type3_callsign.c_str(),
+                plan.type3_locator.c_str(),
+                static_cast<int8_t>(plan.power_dbm),
+                type3_symbols);
+
+            if (!validate_symbol_stream(type3_symbols, WSPR_SYMBOL_COUNT))
+            {
+                result.error = "Generated Type 3 symbol stream is invalid.";
+                return result;
+            }
+
+            result.type = to_string(plan.plan);
+            result.callsign = plan.normalized_callsign;
+            result.locator = plan.normalized_locator;
+            result.power_dbm = plan.power_dbm;
+
+            result.symbols.clear();
+            result.symbols_list.clear();
+            result.symbols_list.push_back(
+                symbols_to_string(type2_symbols, WSPR_SYMBOL_COUNT));
+            result.symbols_list.push_back(
+                symbols_to_string(type3_symbols, WSPR_SYMBOL_COUNT));
+
+            result.ok = true;
             return result;
         }
 

@@ -5,6 +5,7 @@
 /// \brief High-level public API for WSPR encoding, decoding, and correlation.
 
 #include "wspr_ref_unpack.hpp"
+#include "wspr_ref_plan.hpp"
 
 #include <string>
 #include <vector>
@@ -53,11 +54,13 @@ struct WsprCorrelateResult
 /// \param callsign Callsign text. A slash indicates Type 2, and angle brackets indicate Type 3.
 /// \param locator Maidenhead locator. A 6-character locator also implies Type 3.
 /// \param power_dbm Transmit power in dBm.
+/// \param preference Transmission plan preference. This is only a hint and does not guarantee a specific plan type.
 /// \return An encoding result containing the symbol stream or an error.
 WsprEncodeResult encode_message(
     const std::string& callsign,
     const std::string& locator,
-    int power_dbm);
+    int power_dbm,
+    TransmissionPlanPreference preference = TransmissionPlanPreference::Auto);
 
 /// \brief Decode a 162-symbol WSPR stream into a structured message.
 /// \param symbols Symbol text containing digits in the range 0-3.

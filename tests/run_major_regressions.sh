@@ -77,6 +77,10 @@ printf "== Running transmission planning smoke test ==\n"
 ./plan_transmission_smoke
 printf "\n"
 
+printf "== Running paired encoding smoke test ==\n"
+./encode_paired_smoke
+printf "\n"
+
 printf "== Running Type 2 coverage observations (non-fatal) ==\n"
 ./unpack_type2_matrix || true
 ./unpack_type2_overlap_observation || true
