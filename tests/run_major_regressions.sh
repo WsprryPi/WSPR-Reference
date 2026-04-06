@@ -13,9 +13,9 @@ TYPE3_SYMBOLS="33202020120231302232030133320020223201210202203031201321020112120
 PAIRED_TYPE3_SYMBOLS="332020221000333022300101311200002030012302022230312213210201123202011210123032232212330021101010223020221023023130130233010223132202212322310022200132323122233002"
 
 TYPE1_QUIET_EXPECTED="TYPE1 AA0NT EM18 20"
-TYPE2_SUFFIX_QUIET_EXPECTED="TYPE2 <hashed> /12 20"
-TYPE2_PREFIX_QUIET_EXPECTED="TYPE2 <hashed> W0/ 20"
-TYPE2_AMBIGUOUS_QUIET_EXPECTED="TYPE2 <hashed> /09 20 ALT /Z"
+TYPE2_SUFFIX_QUIET_EXPECTED="TYPE2 <hashed>/12 20"
+TYPE2_PREFIX_QUIET_EXPECTED="TYPE2 W0/<hashed> 20"
+TYPE2_AMBIGUOUS_QUIET_EXPECTED="TYPE2 <hashed>/09 20 ALT /Z"
 TYPE3_QUIET_EXPECTED="TYPE3 <hashed> 19169 EM18IG 20"
 CORRELATED_AMBIGUOUS_QUIET_EXPECTED="CORRELATED TYPE2 <hashed>/09 11595 EM18IG 20 ALT /Z"
 CORRELATED_SUFFIX_QUIET_EXPECTED="CORRELATED TYPE2 <hashed>/12 11595 EM18IG 20"
@@ -108,7 +108,7 @@ run_and_assert \
     "CLI decode Type 2 suffix" \
     "./wspr-decode ${TYPE2_SUFFIX_SYMBOLS}" \
     "Decoded Type 2 partial message:" \
-    "Callsign: <hashed>" \
+    "Callsign: <hashed>/12" \
     "Extra:    /12" \
     "Power:    20"
 
@@ -116,7 +116,7 @@ run_and_assert \
     "CLI decode Type 2 prefix" \
     "./wspr-decode ${TYPE2_PREFIX_SYMBOLS}" \
     "Decoded Type 2 partial message:" \
-    "Callsign: <hashed>" \
+    "Callsign: W0/<hashed>" \
     "Extra:    W0/" \
     "Power:    20"
 
@@ -159,6 +159,7 @@ run_and_assert \
     "CLI decode Type 2 ambiguous verbose" \
     "./wspr-decode ${TYPE2_AMBIGUOUS_SYMBOLS}" \
     "Decoded Type 2 partial message:" \
+    "Callsign: <hashed>/09" \
     "Extra:    /09" \
     "Ambiguous with: /Z"
 
@@ -225,6 +226,7 @@ run_and_assert \
     "CLI decode Type 2 ambiguous JSON" \
     "${BUILD_DIR}/wspr-decode --json ${TYPE2_AMBIGUOUS_SYMBOLS}" \
     '"type": "TYPE2"' \
+    '"callsign": "<hashed>/09"' \
     '"extra": "/09"' \
     '"has_ambiguity": true' \
     '"alternate_extra": "/Z"'

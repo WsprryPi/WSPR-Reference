@@ -73,7 +73,6 @@ namespace
             std::cout
                 << "TYPE2 "
                 << message.callsign << " "
-                << message.extra << " "
                 << message.power_dbm;
 
             if (message.has_ambiguity)

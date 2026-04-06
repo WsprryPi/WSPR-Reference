@@ -63,7 +63,7 @@ int main()
     const bool pass =
         message.valid &&
         message.type == wspr::WsprMessageType::Type2 &&
-        message.callsign == "<hashed>" &&
+        message.callsign == "<hashed>/09" &&
         message.extra == "/09" &&
         message.power_dbm == power_dbm &&
         message.has_ambiguity &&

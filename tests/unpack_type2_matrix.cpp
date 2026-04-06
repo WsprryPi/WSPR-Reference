@@ -88,7 +88,10 @@ int main()
         const bool base_pass =
             msg.valid &&
             msg.type == wspr::WsprMessageType::Type2 &&
-            msg.callsign == "<hashed>" &&
+            ((!tc.expected_primary_extra.empty() && tc.expected_primary_extra.back() == '/' &&
+              msg.callsign == tc.expected_primary_extra + "<hashed>") ||
+             (!tc.expected_primary_extra.empty() && tc.expected_primary_extra.front() == '/' &&
+              msg.callsign == "<hashed>" + tc.expected_primary_extra)) &&
             msg.extra == tc.expected_primary_extra &&
             msg.power_dbm == tc.power_dbm &&
             msg.is_partial;

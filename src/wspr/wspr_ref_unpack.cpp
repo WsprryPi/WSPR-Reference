@@ -8,6 +8,22 @@
 
 namespace
 {
+    std::string format_type2_callsign(
+        const std::string &base_callsign,
+        const std::string &extra)
+    {
+        if (extra.empty())
+            return base_callsign;
+
+        if (extra.back() == '/')
+            return extra + base_callsign;
+
+        if (extra.front() == '/')
+            return base_callsign + extra;
+
+        return base_callsign + extra;
+    }
+
     bool is_valid_wspr_power(int power_dbm)
     {
         static constexpr int valid_dbm[] = {
@@ -437,7 +453,7 @@ namespace wspr
             return false;
         }
 
-        message.callsign = "<hashed>";
+        message.callsign = format_type2_callsign("<hashed>", extra);
         message.extra = extra;
         message.valid = true;
         message.type = WsprMessageType::Type2;

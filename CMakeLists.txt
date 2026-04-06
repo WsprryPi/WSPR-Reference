@@ -193,6 +193,12 @@ add_executable(unpack_type2_ambiguity
 target_link_libraries(unpack_type2_ambiguity PRIVATE wspr_ref_lib)
 wspr_ref_target(unpack_type2_ambiguity)
 
+add_executable(type2_decode_pipeline
+    tests/type2_decode_pipeline.cpp
+)
+target_link_libraries(type2_decode_pipeline PRIVATE wspr_ref_lib)
+wspr_ref_target(type2_decode_pipeline)
+
 add_executable(api_example
     examples/api_example.cpp
 )

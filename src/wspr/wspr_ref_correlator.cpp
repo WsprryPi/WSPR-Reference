@@ -95,11 +95,18 @@ namespace wspr
         resolved_message.has_hash = type3->has_hash;
         resolved_message.is_partial = true;
 
-        const std::string base_callsign =
-            !type2->callsign.empty() ? type2->callsign : "<hashed>";
+        if (!type2->callsign.empty() && type2->callsign != "<hashed>")
+        {
+            resolved_message.callsign = type2->callsign;
+        }
+        else
+        {
+            const std::string base_callsign =
+                !type2->callsign.empty() ? type2->callsign : "<hashed>";
 
-        resolved_message.callsign =
-            combine_callsign_and_extra(base_callsign, type2->extra);
+            resolved_message.callsign =
+                combine_callsign_and_extra(base_callsign, type2->extra);
+        }
 
         resolved_message.extra = type2->extra;
 

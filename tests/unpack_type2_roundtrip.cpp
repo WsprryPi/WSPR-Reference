@@ -14,15 +14,16 @@ struct Type2Case
     std::string callsign;
     std::string locator;
     int8_t power_dbm;
+    std::string expected_callsign;
     std::string expected_extra;
 };
 
 int main()
 {
     const std::vector<Type2Case> cases = {
-        {"AA0NT/1", "EM18", 20, "/1"},
-        {"AA0NT/12", "EM18", 20, "/12"},
-        {"W0/AA0NT", "EM18", 20, "W0/"}};
+        {"AA0NT/1", "EM18", 20, "<hashed>/1", "/1"},
+        {"AA0NT/12", "EM18", 20, "<hashed>/12", "/12"},
+        {"W0/AA0NT", "EM18", 20, "W0/<hashed>", "W0/"}};
 
     wspr::WsprRefEncoder encoder;
     wspr::WsprRefDecoder decoder;
@@ -72,6 +73,7 @@ int main()
         const bool pass =
             msg.valid &&
             msg.type == wspr::WsprMessageType::Type2 &&
+            msg.callsign == tc.expected_callsign &&
             msg.extra == tc.expected_extra &&
             msg.power_dbm == tc.power_dbm;
 
