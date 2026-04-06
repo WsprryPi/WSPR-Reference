@@ -10,9 +10,9 @@
 
 int main()
 {
-    const std::string callsign = "<K1ABC>";
-    const std::string locator = "FN20AB";
-    const int8_t power_dbm = 30;
+    const std::string callsign = "<AA0NT>";
+    const std::string locator = "EM18IG";
+    const int8_t power_dbm = 20;
 
     wspr::WsprRefEncoder encoder;
     wspr::WsprRefDecoder decoder;

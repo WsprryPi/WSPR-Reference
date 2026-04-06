@@ -25,11 +25,11 @@ int main(int argc, char **argv)
             << "Usage: jtencode-wspr <callsign> <locator> <power_dbm>\n"
             << "\n"
             << "Examples:\n"
-            << "  jtencode-wspr K1ABC FN20 30\n"
-            << "  jtencode-wspr K1ABC/7 FN20 30\n"
-            << "  jtencode-wspr K1ABC/12 FN20 30\n"
-            << "  jtencode-wspr W1/K1ABC FN20 30\n"
-            << "  jtencode-wspr \"<K1ABC>\" FN20AB 30\n";
+            << "  jtencode-wspr AA0NT EM18 20\n"
+            << "  jtencode-wspr AA0NT/1 EM18 20\n"
+            << "  jtencode-wspr AA0NT/12 EM18 20\n"
+            << "  jtencode-wspr W1/AA0NT EM18 20\n"
+            << "  jtencode-wspr \"<AA0NT>\" EM18IG 20\n";
         return 1;
     }
 

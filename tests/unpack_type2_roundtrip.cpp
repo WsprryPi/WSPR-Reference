@@ -20,9 +20,9 @@ struct Type2Case
 int main()
 {
     const std::vector<Type2Case> cases = {
-        {"K1ABC/7", "FN20", 30, "/7"},
-        {"K1ABC/12", "FN20", 30, "/12"},
-        {"W1/K1ABC", "FN20", 30, "W1/"}};
+        {"AA0NT/1", "EM18", 20, "/1"},
+        {"AA0NT/12", "EM18", 20, "/12"},
+        {"W1/AA0NT", "EM18", 20, "W1/"}};
 
     wspr::WsprRefEncoder encoder;
     wspr::WsprRefDecoder decoder;

@@ -5,7 +5,7 @@
 
 int main()
 {
-    const auto encoded = wspr::encode_message("K1ABC", "FN20", 30);
+    const auto encoded = wspr::encode_message("AA0NT", "EM18", 20);
     if (!encoded.ok)
     {
         std::cerr << "Encode failed: " << encoded.error << "\n";
@@ -31,14 +31,14 @@ int main()
     std::cout << "Decoded locator:  " << decoded.locator << "\n";
     std::cout << "Decoded power:    " << decoded.power_dbm << "\n\n";
 
-    const auto type2 = wspr::encode_message("K1ABC/12", "FN20", 30);
+    const auto type2 = wspr::encode_message("AA0NT/12", "EM18", 20);
     if (!type2.ok)
     {
         std::cerr << "Type 2 encode failed: " << type2.error << "\n";
         return 1;
     }
 
-    const auto type3 = wspr::encode_message("<K1ABC>", "FN20AB", 30);
+    const auto type3 = wspr::encode_message("<AA0NT>", "EM18IG", 20);
     if (!type3.ok)
     {
         std::cerr << "Type 3 encode failed: " << type3.error << "\n";

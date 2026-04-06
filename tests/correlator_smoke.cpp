@@ -17,17 +17,17 @@ namespace
         type2.type = wspr::WsprMessageType::Type2;
         type2.callsign = "<hashed>";
         type2.extra = extra;
-        type2.power_dbm = 30;
+        type2.power_dbm = 20;
         type2.is_partial = true;
 
         wspr::WsprDecodedMessage type3;
         type3.valid = true;
         type3.type = wspr::WsprMessageType::Type3;
         type3.callsign = "<hashed>";
-        type3.callsign_hash = 12345;
+        type3.callsign_hash = 11595;
         type3.has_hash = true;
-        type3.locator = "FN20AB";
-        type3.power_dbm = 30;
+        type3.locator = "EM18IG";
+        type3.power_dbm = 20;
         type3.is_partial = true;
 
         correlator.add_message(type2);
@@ -44,9 +44,9 @@ namespace
             resolved.valid &&
             resolved.callsign == expected_callsign &&
             resolved.extra == extra &&
-            resolved.locator == "FN20AB" &&
-            resolved.power_dbm == 30 &&
-            resolved.callsign_hash == 12345 &&
+            resolved.locator == "EM18IG" &&
+            resolved.power_dbm == 20 &&
+            resolved.callsign_hash == 11595 &&
             resolved.has_hash &&
             resolved.is_partial;
 

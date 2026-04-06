@@ -23,22 +23,22 @@ int main()
 {
     const std::vector<Type2Case> cases = {
         // One-character suffix
-        {"K1ABC/0", "FN20", 30, "/0", false, ""},
-        {"K1ABC/7", "FN20", 30, "/7", false, ""},
-        {"K1ABC/P", "FN20", 30, "/P", false, ""},
-        {"K1ABC/Z", "FN20", 30, "/09", true, "/Z"},
+        {"AA0NT/0", "EM18", 20, "/0", false, ""},
+        {"AA0NT/1", "EM18", 20, "/1", false, ""},
+        {"AA0NT/P", "EM18", 20, "/P", false, ""},
+        {"AA0NT/Z", "EM18", 20, "/09", true, "/Z"},
 
         // Two-digit numeric suffix
-        {"K1ABC/00", "FN20", 30, "/00", true, "/Q"},
-        {"K1ABC/12", "FN20", 30, "/12", false, ""},
-        {"K1ABC/59", "FN20", 30, "/59", false, ""},
-        {"K1ABC/99", "FN20", 30, "/99", false, ""},
+        {"AA0NT/00", "EM18", 20, "/00", true, "/Q"},
+        {"AA0NT/12", "EM18", 20, "/12", false, ""},
+        {"AA0NT/59", "EM18", 20, "/59", false, ""},
+        {"AA0NT/99", "EM18", 20, "/99", false, ""},
 
         // Prefix
-        {"W1/K1ABC", "FN20", 30, "W1/", false, ""},
-        {"DL/K1ABC", "FN20", 30, "DL/", false, ""},
-        {"F4/K1ABC", "FN20", 30, "F4/", false, ""},
-        {"AB1/K1ABC", "FN20", 30, "AB1/", false, ""}};
+        {"W1/AA0NT", "EM18", 20, "W1/", false, ""},
+        {"DL/AA0NT", "EM18", 20, "DL/", false, ""},
+        {"F4/AA0NT", "EM18", 20, "F4/", false, ""},
+        {"AB1/AA0NT", "EM18", 20, "AB1/", false, ""}};
 
     wspr::WsprRefEncoder encoder;
     wspr::WsprRefDecoder decoder;

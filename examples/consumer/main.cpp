@@ -5,7 +5,7 @@
 
 int main()
 {
-    const auto encoded = wspr::encode_message("K1ABC", "FN20", 30);
+    const auto encoded = wspr::encode_message("AA0NT", "EM18", 20);
     if (!encoded.ok)
     {
         std::cerr << encoded.error << "\n";
