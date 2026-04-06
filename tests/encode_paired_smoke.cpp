@@ -8,7 +8,7 @@ int main()
 {
     const wspr::TransmissionPlanResult plan =
         wspr::plan_transmission(
-            "W1/AA0NT",
+            "W0/AA0NT",
             "EM18IG",
             20,
             wspr::TransmissionPlanPreference::RequirePaired);
@@ -27,7 +27,7 @@ int main()
 
     const wspr::WsprEncodeResult result =
         wspr::encode_message(
-            "W1/AA0NT",
+            "W0/AA0NT",
             "EM18IG",
             20,
             wspr::TransmissionPlanPreference::RequirePaired);

@@ -28,7 +28,7 @@ int main(int argc, char **argv)
             << "  jtencode-wspr AA0NT EM18 20\n"
             << "  jtencode-wspr AA0NT/1 EM18 20\n"
             << "  jtencode-wspr AA0NT/12 EM18 20\n"
-            << "  jtencode-wspr W1/AA0NT EM18 20\n"
+            << "  jtencode-wspr W0/AA0NT EM18 20\n"
             << "  jtencode-wspr \"<AA0NT>\" EM18IG 20\n";
         return 1;
     }

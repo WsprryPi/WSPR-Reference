@@ -74,8 +74,8 @@ int main()
 
     all_pass &= run_case(
         "Prefix case",
-        "W1/",
-        "W1/<hashed>");
+        "W0/",
+        "W0/<hashed>");
 
     std::cout << "Summary: " << (all_pass ? "PASS" : "FAIL") << "\n";
     return all_pass ? 0 : 1;

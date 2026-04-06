@@ -22,7 +22,7 @@ int main()
     const std::vector<Type2Case> cases = {
         {"AA0NT/1", "EM18", 20, "/1"},
         {"AA0NT/12", "EM18", 20, "/12"},
-        {"W1/AA0NT", "EM18", 20, "W1/"}};
+        {"W0/AA0NT", "EM18", 20, "W0/"}};
 
     wspr::WsprRefEncoder encoder;
     wspr::WsprRefDecoder decoder;

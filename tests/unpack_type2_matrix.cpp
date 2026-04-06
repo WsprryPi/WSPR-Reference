@@ -35,7 +35,7 @@ int main()
         {"AA0NT/99", "EM18", 20, "/99", false, ""},
 
         // Prefix
-        {"W1/AA0NT", "EM18", 20, "W1/", false, ""},
+        {"W0/AA0NT", "EM18", 20, "W0/", false, ""},
         {"DL/AA0NT", "EM18", 20, "DL/", false, ""},
         {"F4/AA0NT", "EM18", 20, "F4/", false, ""},
         {"AB1/AA0NT", "EM18", 20, "AB1/", false, ""}};

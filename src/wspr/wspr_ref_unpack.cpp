@@ -410,7 +410,7 @@ namespace wspr
 
             extra = decode_type2_suffix_one_char(ext_field - 27232U);
         }
-        // Prefix: W1/, DL/, etc.
+        // Prefix: W0/, DL/, etc.
         else if (ext_field <= 32767U)
         {
             uint32_t prefix_value = ext_field;
