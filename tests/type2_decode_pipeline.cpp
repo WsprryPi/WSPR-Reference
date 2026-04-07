@@ -99,6 +99,35 @@ int main()
 
     all_pass = all_pass && correlate_pass;
 
+    const wspr::WsprEncodeResult mismatched_type3 =
+        wspr::encode_message("<K1ABC>", "FN20AB", 20);
+
+    if (!mismatched_type3.ok)
+    {
+        std::cerr << "Failed to encode mismatched correlation inputs.\n";
+        return 1;
+    }
+
+    const wspr::WsprCorrelateResult mismatched =
+        wspr::correlate_symbol_streams(type2.symbols, mismatched_type3.symbols);
+
+    const bool mismatch_pass =
+        mismatched.ok &&
+        !mismatched.correlated &&
+        mismatched.message1.valid &&
+        mismatched.message2.valid &&
+        mismatched.message1.has_hash &&
+        mismatched.message2.has_hash &&
+        mismatched.message1.callsign_hash != mismatched.message2.callsign_hash &&
+        !mismatched.resolved.valid;
+
+    std::cout << "Mismatched correlate case:\n";
+    std::cout << "  Type 2 hash: " << mismatched.message1.callsign_hash << "\n";
+    std::cout << "  Type 3 hash: " << mismatched.message2.callsign_hash << "\n";
+    std::cout << "  Result:      " << (mismatch_pass ? "PASS" : "FAIL") << "\n\n";
+
+    all_pass = all_pass && mismatch_pass;
+
     std::cout << "Summary: " << (all_pass ? "PASS" : "FAIL") << "\n";
     return all_pass ? 0 : 1;
 }
