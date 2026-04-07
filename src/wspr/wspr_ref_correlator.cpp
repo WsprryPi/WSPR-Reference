@@ -78,6 +78,9 @@ namespace wspr
         if (a.power_dbm != b.power_dbm)
             return false;
 
+        if (a.has_hash && b.has_hash && a.callsign_hash != b.callsign_hash)
+            return false;
+
         return true;
     }
 

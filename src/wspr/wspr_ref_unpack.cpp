@@ -8,6 +8,180 @@
 
 namespace
 {
+    constexpr uint32_t rot(uint32_t x, uint32_t k)
+    {
+        return (x << k) | (x >> (32 - k));
+    }
+
+    void mix(uint32_t &a, uint32_t &b, uint32_t &c)
+    {
+        a -= c;
+        a ^= rot(c, 4);
+        c += b;
+        b -= a;
+        b ^= rot(a, 6);
+        a += c;
+        c -= b;
+        c ^= rot(b, 8);
+        b += a;
+        a -= c;
+        a ^= rot(c, 16);
+        c += b;
+        b -= a;
+        b ^= rot(a, 19);
+        a += c;
+        c -= b;
+        c ^= rot(b, 4);
+        b += a;
+    }
+
+    void final_mix(uint32_t &a, uint32_t &b, uint32_t &c)
+    {
+        c ^= b;
+        c -= rot(b, 14);
+        a ^= c;
+        a -= rot(c, 11);
+        b ^= a;
+        b -= rot(a, 25);
+        c ^= b;
+        c -= rot(b, 16);
+        a ^= c;
+        a -= rot(c, 4);
+        b ^= a;
+        b -= rot(a, 14);
+        c ^= b;
+        c -= rot(b, 24);
+    }
+
+    uint32_t nhash(const void *key, int *length0, uint32_t *initval0)
+    {
+        uint32_t a, b, c;
+        std::size_t length = static_cast<std::size_t>(*length0);
+        uint32_t initval = *initval0;
+        union
+        {
+            const void *ptr;
+            std::size_t i;
+        } u;
+
+        a = b = c = 0xdeadbeefU + static_cast<uint32_t>(length) + initval;
+
+        u.ptr = key;
+        if ((u.i & 0x3U) == 0)
+        {
+            const uint32_t *k = static_cast<const uint32_t *>(key);
+
+            while (length > 12)
+            {
+                a += k[0];
+                b += k[1];
+                c += k[2];
+                mix(a, b, c);
+                length -= 12;
+                k += 3;
+            }
+
+            switch (length)
+            {
+            case 12: c += k[2]; b += k[1]; a += k[0]; break;
+            case 11: c += k[2] & 0x00ffffffU; b += k[1]; a += k[0]; break;
+            case 10: c += k[2] & 0x0000ffffU; b += k[1]; a += k[0]; break;
+            case 9: c += k[2] & 0x000000ffU; b += k[1]; a += k[0]; break;
+            case 8: b += k[1]; a += k[0]; break;
+            case 7: b += k[1] & 0x00ffffffU; a += k[0]; break;
+            case 6: b += k[1] & 0x0000ffffU; a += k[0]; break;
+            case 5: b += k[1] & 0x000000ffU; a += k[0]; break;
+            case 4: a += k[0]; break;
+            case 3: a += k[0] & 0x00ffffffU; break;
+            case 2: a += k[0] & 0x0000ffffU; break;
+            case 1: a += k[0] & 0x000000ffU; break;
+            case 0: return c;
+            }
+        }
+        else if ((u.i & 0x1U) == 0)
+        {
+            const uint16_t *k = static_cast<const uint16_t *>(key);
+            const uint8_t *k8 = reinterpret_cast<const uint8_t *>(k);
+
+            while (length > 12)
+            {
+                a += k[0] + (static_cast<uint32_t>(k[1]) << 16);
+                b += k[2] + (static_cast<uint32_t>(k[3]) << 16);
+                c += k[4] + (static_cast<uint32_t>(k[5]) << 16);
+                mix(a, b, c);
+                length -= 12;
+                k += 6;
+            }
+
+            switch (length)
+            {
+            case 12: c += k[4] + (static_cast<uint32_t>(k[5]) << 16); b += k[2] + (static_cast<uint32_t>(k[3]) << 16); a += k[0] + (static_cast<uint32_t>(k[1]) << 16); break;
+            case 11: c += static_cast<uint32_t>(k8[10]) << 16; [[fallthrough]];
+            case 10: c += k[4]; b += k[2] + (static_cast<uint32_t>(k[3]) << 16); a += k[0] + (static_cast<uint32_t>(k[1]) << 16); break;
+            case 9: c += k8[8]; [[fallthrough]];
+            case 8: b += k[2] + (static_cast<uint32_t>(k[3]) << 16); a += k[0] + (static_cast<uint32_t>(k[1]) << 16); break;
+            case 7: b += static_cast<uint32_t>(k8[6]) << 16; [[fallthrough]];
+            case 6: b += k[2]; a += k[0] + (static_cast<uint32_t>(k[1]) << 16); break;
+            case 5: b += k8[4]; [[fallthrough]];
+            case 4: a += k[0] + (static_cast<uint32_t>(k[1]) << 16); break;
+            case 3: a += static_cast<uint32_t>(k8[2]) << 16; [[fallthrough]];
+            case 2: a += k[0]; break;
+            case 1: a += k8[0]; break;
+            case 0: return c;
+            }
+        }
+        else
+        {
+            const uint8_t *k = static_cast<const uint8_t *>(key);
+
+            while (length > 12)
+            {
+                a += k[0];
+                a += static_cast<uint32_t>(k[1]) << 8;
+                a += static_cast<uint32_t>(k[2]) << 16;
+                a += static_cast<uint32_t>(k[3]) << 24;
+                b += k[4];
+                b += static_cast<uint32_t>(k[5]) << 8;
+                b += static_cast<uint32_t>(k[6]) << 16;
+                b += static_cast<uint32_t>(k[7]) << 24;
+                c += k[8];
+                c += static_cast<uint32_t>(k[9]) << 8;
+                c += static_cast<uint32_t>(k[10]) << 16;
+                c += static_cast<uint32_t>(k[11]) << 24;
+                mix(a, b, c);
+                length -= 12;
+                k += 12;
+            }
+
+            switch (length)
+            {
+            case 12: c += static_cast<uint32_t>(k[11]) << 24; [[fallthrough]];
+            case 11: c += static_cast<uint32_t>(k[10]) << 16; [[fallthrough]];
+            case 10: c += static_cast<uint32_t>(k[9]) << 8; [[fallthrough]];
+            case 9: c += k[8]; [[fallthrough]];
+            case 8: b += static_cast<uint32_t>(k[7]) << 24; [[fallthrough]];
+            case 7: b += static_cast<uint32_t>(k[6]) << 16; [[fallthrough]];
+            case 6: b += static_cast<uint32_t>(k[5]) << 8; [[fallthrough]];
+            case 5: b += k[4]; [[fallthrough]];
+            case 4: a += static_cast<uint32_t>(k[3]) << 24; [[fallthrough]];
+            case 3: a += static_cast<uint32_t>(k[2]) << 16; [[fallthrough]];
+            case 2: a += static_cast<uint32_t>(k[1]) << 8; [[fallthrough]];
+            case 1: a += k[0]; break;
+            case 0: return c;
+            }
+        }
+
+        final_mix(a, b, c);
+        return c;
+    }
+
+    uint32_t callsign_hash_from_base(const std::string &base_callsign)
+    {
+        int call_len = static_cast<int>(base_callsign.size());
+        uint32_t init_val = 146U;
+        return nhash(base_callsign.data(), &call_len, &init_val) & 32767U;
+    }
+
     std::string format_type2_callsign(
         const std::string &base_callsign,
         const std::string &extra)
@@ -230,7 +404,6 @@ namespace wspr
         }
 
         const uint32_t n = extract_n(payload_bits, payload_bit_count);
-        (void)n;
         const uint32_t m = extract_m(payload_bits, payload_bit_count);
 
         unpack_callsign_type1(n, message.callsign);
@@ -366,7 +539,6 @@ namespace wspr
         }
 
         const uint32_t n = extract_n(payload_bits, payload_bit_count);
-        (void)n;
 
         const uint32_t m = extract_m(payload_bits, payload_bit_count);
 
@@ -453,8 +625,13 @@ namespace wspr
             return false;
         }
 
+        std::string base_callsign;
+        unpack_callsign_type1(n, base_callsign);
+
         message.callsign = format_type2_callsign("<hashed>", extra);
         message.extra = extra;
+        message.callsign_hash = callsign_hash_from_base(base_callsign);
+        message.has_hash = true;
         message.valid = true;
         message.type = WsprMessageType::Type2;
         message.is_partial = true;

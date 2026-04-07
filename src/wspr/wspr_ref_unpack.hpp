@@ -37,7 +37,7 @@ namespace wspr
         /// \brief Type 2 suffix or prefix fragment when present.
         std::string extra;
 
-        /// \brief Decoded Type 3 callsign hash value.
+        /// \brief Decoded callsign hash value when available.
         uint32_t callsign_hash = 0;
         /// \brief True when \ref callsign_hash contains a meaningful value.
         bool has_hash = false;

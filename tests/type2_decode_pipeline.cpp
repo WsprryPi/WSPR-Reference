@@ -51,6 +51,7 @@ int main()
             decoded.callsign == tc.expected_callsign &&
             decoded.extra == tc.expected_extra &&
             decoded.power_dbm == tc.power_dbm &&
+            decoded.has_hash &&
             decoded.is_partial;
 
         std::cout << "Decode case: " << tc.callsign << "\n";
@@ -81,10 +82,14 @@ int main()
         correlated.correlated &&
         correlated.message1.callsign == "<hashed>/12" &&
         correlated.message1.extra == "/12" &&
+        correlated.message1.has_hash &&
+        correlated.message2.has_hash &&
+        correlated.message1.callsign_hash == correlated.message2.callsign_hash &&
         correlated.resolved.callsign == "<callsign>/12" &&
         correlated.resolved.locator == "EM18IG" &&
         correlated.resolved.power_dbm == 20 &&
         correlated.resolved.has_hash &&
+        correlated.resolved.callsign_hash == correlated.message2.callsign_hash &&
         !correlated.resolved.is_partial;
 
     std::cout << "Correlate case:\n";
