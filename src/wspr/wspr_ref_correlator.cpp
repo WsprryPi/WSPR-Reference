@@ -135,8 +135,8 @@ namespace wspr
 
         resolved_message.extra = type2->extra;
 
-        resolved_message.has_ambiguity = type2->has_ambiguity;
-        resolved_message.alternate_extra = type2->alternate_extra;
+        resolved_message.has_ambiguity = false;
+        resolved_message.alternate_extra.clear();
 
         return true;
     }

@@ -99,6 +99,71 @@ int main()
 
     all_pass = all_pass && correlate_pass;
 
+    const wspr::WsprEncodeResult ambiguous_type2 =
+        wspr::encode_message("AA0NT/Z", "EM18", 20);
+
+    if (!ambiguous_type2.ok)
+    {
+        std::cerr << "Failed to encode ambiguous Type 2 input.\n";
+        return 1;
+    }
+
+    wspr::WsprDecodedMessage ambiguous_decoded;
+    std::string ambiguous_error;
+    if (!wspr::decode_symbols(
+            ambiguous_type2.symbols,
+            ambiguous_decoded,
+            ambiguous_error))
+    {
+        std::cerr << "Decode failed for ambiguous Type 2 input: "
+                  << ambiguous_error << "\n";
+        return 1;
+    }
+
+    const bool ambiguous_decode_pass =
+        ambiguous_decoded.valid &&
+        ambiguous_decoded.type == wspr::WsprMessageType::Type2 &&
+        ambiguous_decoded.callsign == "<hashed>/Z" &&
+        ambiguous_decoded.extra == "/Z" &&
+        ambiguous_decoded.has_ambiguity &&
+        ambiguous_decoded.alternate_extra == "/09" &&
+        ambiguous_decoded.is_partial;
+
+    std::cout << "Ambiguous decode case:\n";
+    std::cout << "  Callsign: " << ambiguous_decoded.callsign << "\n";
+    std::cout << "  Extra:    " << ambiguous_decoded.extra << "\n";
+    std::cout << "  Alt:      " << ambiguous_decoded.alternate_extra << "\n";
+    std::cout << "  Result:   "
+              << (ambiguous_decode_pass ? "PASS" : "FAIL") << "\n\n";
+
+    all_pass = all_pass && ambiguous_decode_pass;
+
+    const wspr::WsprCorrelateResult ambiguous_correlated =
+        wspr::correlate_symbol_streams(ambiguous_type2.symbols, type3.symbols);
+
+    const bool ambiguous_correlate_pass =
+        ambiguous_correlated.ok &&
+        ambiguous_correlated.correlated &&
+        ambiguous_correlated.message1.callsign == "<hashed>/Z" &&
+        ambiguous_correlated.message1.extra == "/Z" &&
+        ambiguous_correlated.message1.has_ambiguity &&
+        ambiguous_correlated.message1.alternate_extra == "/09" &&
+        ambiguous_correlated.resolved.callsign == "<callsign>/Z" &&
+        ambiguous_correlated.resolved.extra == "/Z" &&
+        ambiguous_correlated.resolved.locator == "EM18IG" &&
+        ambiguous_correlated.resolved.power_dbm == 20 &&
+        !ambiguous_correlated.resolved.is_partial &&
+        !ambiguous_correlated.resolved.has_ambiguity &&
+        ambiguous_correlated.resolved.alternate_extra.empty();
+
+    std::cout << "Ambiguous correlate case:\n";
+    std::cout << "  Decoded Type 2 callsign: " << ambiguous_correlated.message1.callsign << "\n";
+    std::cout << "  Resolved callsign:       " << ambiguous_correlated.resolved.callsign << "\n";
+    std::cout << "  Result:                  "
+              << (ambiguous_correlate_pass ? "PASS" : "FAIL") << "\n\n";
+
+    all_pass = all_pass && ambiguous_correlate_pass;
+
     const wspr::WsprEncodeResult mismatched_type3 =
         wspr::encode_message("<K1ABC>", "FN20AB", 20);
 

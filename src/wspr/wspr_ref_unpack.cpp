@@ -583,7 +583,8 @@ namespace wspr
                 if (!overlap_one_char.empty())
                 {
                     has_ambiguity = true;
-                    alternate_extra = overlap_one_char;
+                    alternate_extra = extra;
+                    extra = overlap_one_char;
                 }
             }
         }

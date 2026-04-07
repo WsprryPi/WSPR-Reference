@@ -26,10 +26,10 @@ int main()
         {"AA0NT/0", "EM18", 20, "/0", false, ""},
         {"AA0NT/1", "EM18", 20, "/1", false, ""},
         {"AA0NT/P", "EM18", 20, "/P", false, ""},
-        {"AA0NT/Z", "EM18", 20, "/09", true, "/Z"},
+        {"AA0NT/Z", "EM18", 20, "/Z", true, "/09"},
 
         // Two-digit numeric suffix
-        {"AA0NT/00", "EM18", 20, "/00", true, "/Q"},
+        {"AA0NT/00", "EM18", 20, "/Q", true, "/00"},
         {"AA0NT/12", "EM18", 20, "/12", false, ""},
         {"AA0NT/59", "EM18", 20, "/59", false, ""},
         {"AA0NT/99", "EM18", 20, "/99", false, ""},

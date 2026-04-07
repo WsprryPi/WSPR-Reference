@@ -63,11 +63,11 @@ int main()
     const bool pass =
         message.valid &&
         message.type == wspr::WsprMessageType::Type2 &&
-        message.callsign == "<hashed>/09" &&
-        message.extra == "/09" &&
+        message.callsign == "<hashed>/Z" &&
+        message.extra == "/Z" &&
         message.power_dbm == power_dbm &&
         message.has_ambiguity &&
-        message.alternate_extra == "/Z";
+        message.alternate_extra == "/09";
 
     std::cout << "Summary: " << (pass ? "PASS" : "FAIL") << "\n";
     return pass ? 0 : 1;
