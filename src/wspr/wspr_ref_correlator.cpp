@@ -2,6 +2,26 @@
 
 namespace wspr
 {
+    namespace
+    {
+        std::string resolved_callsign_token(std::string callsign)
+        {
+            constexpr const char *kHashedToken = "<hashed>";
+            constexpr const char *kResolvedToken = "<callsign>";
+
+            const std::size_t pos = callsign.find(kHashedToken);
+            if (pos != std::string::npos)
+            {
+                callsign.replace(
+                    pos,
+                    std::char_traits<char>::length(kHashedToken),
+                    kResolvedToken);
+            }
+
+            return callsign;
+        }
+    } // namespace
+
     void WsprRefCorrelator::add_message(const WsprDecodedMessage &message)
     {
         recent_messages_.push_back(message);
@@ -93,19 +113,21 @@ namespace wspr
         resolved_message.locator = type3->locator;
         resolved_message.callsign_hash = type3->callsign_hash;
         resolved_message.has_hash = type3->has_hash;
-        resolved_message.is_partial = true;
+        resolved_message.is_partial = false;
 
         if (!type2->callsign.empty() && type2->callsign != "<hashed>")
         {
-            resolved_message.callsign = type2->callsign;
+            resolved_message.callsign =
+                resolved_callsign_token(type2->callsign);
         }
         else
         {
             const std::string base_callsign =
-                !type2->callsign.empty() ? type2->callsign : "<hashed>";
+                !type2->callsign.empty() ? type2->callsign : "<callsign>";
 
             resolved_message.callsign =
-                combine_callsign_and_extra(base_callsign, type2->extra);
+                resolved_callsign_token(
+                    combine_callsign_and_extra(base_callsign, type2->extra));
         }
 
         resolved_message.extra = type2->extra;

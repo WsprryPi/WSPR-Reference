@@ -48,7 +48,7 @@ namespace
             resolved.power_dbm == 20 &&
             resolved.callsign_hash == 11595 &&
             resolved.has_hash &&
-            resolved.is_partial;
+            !resolved.is_partial;
 
         std::cout << label << ":\n";
         std::cout << "  Callsign: " << resolved.callsign << "\n";
@@ -70,12 +70,12 @@ int main()
     all_pass &= run_case(
         "Suffix case",
         "/12",
-        "<hashed>/12");
+        "<callsign>/12");
 
     all_pass &= run_case(
         "Prefix case",
         "W0/",
-        "W0/<hashed>");
+        "W0/<callsign>");
 
     std::cout << "Summary: " << (all_pass ? "PASS" : "FAIL") << "\n";
     return all_pass ? 0 : 1;

@@ -81,10 +81,11 @@ int main()
         correlated.correlated &&
         correlated.message1.callsign == "<hashed>/12" &&
         correlated.message1.extra == "/12" &&
-        correlated.resolved.callsign == "<hashed>/12" &&
+        correlated.resolved.callsign == "<callsign>/12" &&
         correlated.resolved.locator == "EM18IG" &&
         correlated.resolved.power_dbm == 20 &&
-        correlated.resolved.has_hash;
+        correlated.resolved.has_hash &&
+        !correlated.resolved.is_partial;
 
     std::cout << "Correlate case:\n";
     std::cout << "  Decoded Type 2 callsign: " << correlated.message1.callsign << "\n";
