@@ -4,6 +4,7 @@
 #include "wspr_ref_correlator.hpp"
 #include "wspr_ref_decoder.hpp"
 #include "wspr_ref_encoder.hpp"
+#include "wspr_ref_encode_internal.hpp"
 #include "wspr_ref_plan.hpp"
 
 #include <cstddef>
@@ -59,13 +60,36 @@ namespace wspr
         int power_dbm,
         TransmissionPlanPreference preference)
     {
-        WsprEncodeResult result;
+        return internal::encode_message_with_metadata(
+                   callsign,
+                   locator,
+                   power_dbm,
+                   preference)
+            .encoded;
+    }
+} // namespace wspr
+
+namespace wspr::internal
+{
+    WsprPreparedEncodeResult encode_message_with_metadata(
+        const std::string &callsign,
+        const std::string &locator,
+        int power_dbm,
+        TransmissionPlanPreference preference)
+    {
+        WsprPreparedEncodeResult prepared;
+        WsprEncodeResult &result = prepared.encoded;
+        WsprEncodeRuntimeMetadata &metadata = prepared.metadata;
         auto plan = plan_transmission(
             callsign,
             locator,
             power_dbm,
             preference);
 
+        metadata.callsign_raw = callsign;
+        metadata.locator_raw = locator;
+        metadata.callsign_normalized = plan.normalized_callsign;
+        metadata.locator_normalized = plan.normalized_locator;
         result.callsign = plan.normalized_callsign;
         result.locator = plan.normalized_locator;
         result.power_dbm = plan.power_dbm;
@@ -73,7 +97,7 @@ namespace wspr
         if (!plan.ok)
         {
             result.error = plan.message;
-            return result;
+            return prepared;
         }
 
         WsprRefEncoder encoder;
@@ -86,6 +110,8 @@ namespace wspr
         case TransmissionPlanType::Type2Single:
         case TransmissionPlanType::Type3Single:
         {
+            metadata.frame_callsigns = {plan.normalized_callsign};
+            metadata.frame_locators = {plan.normalized_locator};
             encoder.wspr_encode(
                 plan.normalized_callsign.c_str(),
                 plan.normalized_locator.c_str(),
@@ -103,6 +129,13 @@ namespace wspr
             uint8_t type2_symbols[WSPR_SYMBOL_COUNT] = {};
             uint8_t type3_symbols[WSPR_SYMBOL_COUNT] = {};
 
+            metadata.frame_callsigns = {
+                plan.type2_callsign,
+                plan.type3_callsign};
+            metadata.frame_locators = {
+                plan.type2_locator,
+                plan.type3_locator};
+
             paired_encoder.wspr_encode(
                 plan.type2_callsign.c_str(),
                 plan.type2_locator.c_str(),
@@ -112,7 +145,7 @@ namespace wspr
             if (!validate_symbol_stream(type2_symbols, WSPR_SYMBOL_COUNT))
             {
                 result.error = "Generated Type 2 symbol stream is invalid.";
-                return result;
+                return prepared;
             }
 
             paired_encoder.wspr_encode(
@@ -124,7 +157,7 @@ namespace wspr
             if (!validate_symbol_stream(type3_symbols, WSPR_SYMBOL_COUNT))
             {
                 result.error = "Generated Type 3 symbol stream is invalid.";
-                return result;
+                return prepared;
             }
 
             result.type = to_string(plan.plan);
@@ -135,30 +168,36 @@ namespace wspr
             result.symbols_list.push_back(
                 symbols_to_string(type3_symbols, WSPR_SYMBOL_COUNT));
 
+            metadata.total_frame_count = result.symbols_list.size();
             result.ok = true;
-            return result;
+            return prepared;
         }
 
         default:
         {
             result.error = "Invalid transmission plan.";
-            return result;
+            return prepared;
         }
         }
 
         if (!validate_symbol_stream(symbols, WSPR_SYMBOL_COUNT))
         {
             result.error = "Generated symbol stream is invalid.";
-            return result;
+            return prepared;
         }
 
         result.symbols = symbols_to_string(symbols, WSPR_SYMBOL_COUNT);
         result.symbols_list.clear();
         result.symbols_list.push_back(result.symbols);
+        metadata.total_frame_count = result.symbols_list.size();
         result.ok = true;
-        return result;
+        return prepared;
     }
 
+} // namespace wspr::internal
+
+namespace wspr
+{
     bool decode_symbols(
         const std::string &symbols,
         WsprDecodedMessage &message,

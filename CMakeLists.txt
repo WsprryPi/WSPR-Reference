@@ -218,6 +218,7 @@ install(
         ${CMAKE_CURRENT_SOURCE_DIR}/src/wspr/
     DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/wspr
     FILES_MATCHING PATTERN "*.hpp"
+    PATTERN "*_internal.hpp" EXCLUDE
 )
 
 install(
