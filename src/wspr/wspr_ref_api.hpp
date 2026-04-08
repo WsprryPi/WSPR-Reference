@@ -19,24 +19,12 @@ struct WsprEncodeResult
     bool ok = false;
     /// \brief Detected message type string such as `TYPE1`, `TYPE2`, or `TYPE3`.
     std::string type;
-    /// \brief Normalized overall callsign chosen by the planner.
+    /// \brief Input callsign copied into the result.
     std::string callsign;
-    /// \brief Normalized overall locator chosen by the planner.
+    /// \brief Input locator copied into the result.
     std::string locator;
-    /// \brief Planner-selected power in dBm.
+    /// \brief Input power in dBm copied into the result.
     int power_dbm = 0;
-    /// \brief Raw callsign passed into the encoder entry point.
-    std::string callsign_raw;
-    /// \brief Raw locator passed into the encoder entry point.
-    std::string locator_raw;
-    /// \brief Normalized overall callsign chosen by the planner.
-    std::string callsign_normalized;
-    /// \brief Normalized overall locator chosen by the planner.
-    std::string locator_normalized;
-    /// \brief Planner-derived callsign for each encoded frame.
-    std::vector<std::string> frame_callsigns;
-    /// \brief Planner-derived locator for each encoded frame.
-    std::vector<std::string> frame_locators;
     /// \brief Encoded 162-symbol WSPR symbol stream.
     std::string symbols;
     /// @brief List of symbol stream variants that decode to the same message. This is empty when \ref ok is false.

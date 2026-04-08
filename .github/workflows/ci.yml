@@ -25,10 +25,13 @@ jobs:
         run: ./tests/run_major_regressions.sh
 
       - name: Install library
-        run: cmake --install build --prefix install
+        run: |
+          rm -rf install
+          cmake --install build --prefix install
 
       - name: Build consumer example
         run: |
+          rm -rf examples/consumer/build
           cmake -S examples/consumer -B examples/consumer/build \
             -DCMAKE_PREFIX_PATH="$PWD/install"
           cmake --build examples/consumer/build

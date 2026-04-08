@@ -18,3 +18,11 @@ Makefile
 
 # Binaries
 wspr-ref
+
+# Node stuff
+node_modules/
+package.json
+package-lock.json
+
+# Codex
+.codex
