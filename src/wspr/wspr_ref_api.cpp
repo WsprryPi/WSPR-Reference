@@ -66,9 +66,13 @@ namespace wspr
             power_dbm,
             preference);
 
-        result.callsign = callsign;
-        result.locator = locator;
-        result.power_dbm = power_dbm;
+        result.callsign_raw = callsign;
+        result.locator_raw = locator;
+        result.callsign = plan.normalized_callsign;
+        result.locator = plan.normalized_locator;
+        result.callsign_normalized = plan.normalized_callsign;
+        result.locator_normalized = plan.normalized_locator;
+        result.power_dbm = plan.power_dbm;
 
         if (!plan.ok)
         {
@@ -93,6 +97,10 @@ namespace wspr
                 symbols);
 
             result.type = to_string(plan.plan);
+            result.frame_callsigns.clear();
+            result.frame_locators.clear();
+            result.frame_callsigns.push_back(plan.normalized_callsign);
+            result.frame_locators.push_back(plan.normalized_locator);
             break;
         }
 
@@ -128,9 +136,12 @@ namespace wspr
             }
 
             result.type = to_string(plan.plan);
-            result.callsign = plan.normalized_callsign;
-            result.locator = plan.normalized_locator;
-            result.power_dbm = plan.power_dbm;
+            result.frame_callsigns.clear();
+            result.frame_locators.clear();
+            result.frame_callsigns.push_back(plan.type2_callsign);
+            result.frame_locators.push_back(plan.type2_locator);
+            result.frame_callsigns.push_back(plan.type3_callsign);
+            result.frame_locators.push_back(plan.type3_locator);
 
             result.symbols.clear();
             result.symbols_list.clear();
