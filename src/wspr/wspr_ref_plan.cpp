@@ -303,7 +303,8 @@ namespace wspr
         if (is_compound_callsign(normalized_callsign))
         {
             if (normalized_locator.size() == 6 &&
-                (preference == TransmissionPlanPreference::PreferPaired ||
+                (preference == TransmissionPlanPreference::Auto ||
+                 preference == TransmissionPlanPreference::PreferPaired ||
                  preference == TransmissionPlanPreference::RequirePaired))
             {
                 auto result = make_success_result(
