@@ -12,9 +12,9 @@ that include a slash ("/"), especially with single-character suffixes.
 
 A compound callsign includes a slash:
 
-- K1ABC/P
-- K1ABC/1
-- PJ4/K1ABC
+- AA0NT/P
+- AA0NT/1
+- PJ4/AA0NT
 
 These cannot fit into a standard WSPR message.
 
@@ -56,8 +56,8 @@ Both are required for full reconstruction.
 
 Example:
 
-- K1ABC/P
-- K1ABC/1
+- AA0NT/P
+- AA0NT/1
 
 When suffix length is 1:
 
@@ -74,7 +74,7 @@ Same encoded value may represent: - Letter - Digit
 
 From Type 2 alone:
 
-    Base: K1ABC
+    Base: AA0NT
     Suffix: ?
     Candidates: [P, 1]
 
@@ -90,8 +90,8 @@ Resolution process:
 
 1. Generate candidates:
 
-    - K1ABC/P
-    - K1ABC/1
+    - AA0NT/P
+    - AA0NT/1
 
 2. Compute hash for each
 
@@ -142,8 +142,8 @@ Reliable decoding requires BOTH:
 
 Examples:
 
-- F/K1ABC
-- PJ4/K1ABC
+- F/AA0NT
+- PJ4/AA0NT
 
 ------------------------------------------------------------------------
 
@@ -154,9 +154,9 @@ Examples:
 
 Examples:
 
-- K1ABC/P
-- K1ABC/1
-- K1ABC/12
+- AA0NT/P
+- AA0NT/1
+- AA0NT/12
 
 ------------------------------------------------------------------------
 
@@ -168,7 +168,7 @@ Only one allowed:
 
 Invalid:
 
-- PJ4/K1ABC/P
+- PJ4/AA0NT/P
 
 ------------------------------------------------------------------------
 
@@ -237,12 +237,12 @@ Match hash against candidates.
 ## Recommended Debug Output
 
     Type2:
-      base: K1ABC
+      base: AA0NT
       suffix candidates: [P, 1]
       status: ambiguous
 
     Type3:
-      resolved: K1ABC/P
+      resolved: AA0NT/P
 
 ------------------------------------------------------------------------
 

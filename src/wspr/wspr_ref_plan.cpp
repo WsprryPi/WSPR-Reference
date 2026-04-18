@@ -277,7 +277,7 @@ namespace wspr
                 auto result = make_error_result(
                     TransmissionPlanStatus::Type3RequiresSixCharLocator,
                     "Explicit Type 3 callsigns require a 6-character locator.",
-                    "Use <CALLSIGN> only with a 6-character locator such as FN20AB.",
+                    "Use <CALLSIGN> only with a 6-character locator such as EM18IG.",
                     normalized_callsign,
                     normalized_locator,
                     power_dbm,

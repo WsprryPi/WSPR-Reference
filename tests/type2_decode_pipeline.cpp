@@ -165,7 +165,7 @@ int main()
     all_pass = all_pass && ambiguous_correlate_pass;
 
     const wspr::WsprEncodeResult mismatched_type3 =
-        wspr::encode_message("<K1ABC>", "FN20AB", 20);
+        wspr::encode_message("<AA0NT>", "EM18IG", 20);
 
     if (!mismatched_type3.ok)
     {

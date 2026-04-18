@@ -11,7 +11,7 @@ A correctness-first WSPR reference encoder/decoder with explicit ambiguity handl
 cmake -S . -B build
 cmake --build build
 
-./build/wspr-encode K1ABC FN20 30
+./build/wspr-encode AA0NT EM18 30
 ./build/wspr-decode --quiet 330020021022111022120121133220000232032322002012130033030021303020033032301010232030110201323012223220221021021112330211212021312202030320112222222330323322013222
 ./build/wspr-correlate --quiet 330220021020113022100321133020200230032120022210130233030001301022033232321210012232130003103030203220001221023112330233230223312202030122132020202132103322031020 332002201020111022320121311022222212032302022230130033230021301202031232301032230032310221303032221222201023223312130031030203132200010100132000220330303120213202
 ```
@@ -45,18 +45,18 @@ It supports:
 ### Encode
 
 ```bash
-./build/wspr-encode K1ABC FN20 30
-./build/wspr-encode --quiet K1ABC FN20 30
-./build/wspr-encode --symbols-only K1ABC FN20 30
-./build/wspr-encode --json K1ABC FN20 30
+./build/wspr-encode AA0NT EM18 30
+./build/wspr-encode --quiet AA0NT EM18 30
+./build/wspr-encode --symbols-only AA0NT EM18 30
+./build/wspr-encode --json AA0NT EM18 30
 ```
 
 Default output:
 
 ```text
 Type: TYPE1
-Callsign: K1ABC
-Locator: FN20
+Callsign: AA0NT
+Locator: EM18
 Power: 30 dBm
 Symbols: 330020021022111022120121133220000232032322002012130033030021303020033032301010232030110201323012223220221021021112330211212021312202030320112222222330323322013222
 ```
@@ -66,8 +66,8 @@ JSON output:
 ```json
 {
   "type": "TYPE1",
-  "callsign": "K1ABC",
-  "locator": "FN20",
+  "callsign": "AA0NT",
+  "locator": "EM18",
   "power_dbm": 30,
   "symbols": "330020021022111022120121133220000232032322002012130033030021303020033032301010232030110201323012223220221021021112330211212021312202030320112222222330323322013222"
 }
@@ -84,9 +84,9 @@ JSON output:
 Quiet output examples:
 
 ```text
-TYPE1 K1ABC FN20 30
+TYPE1 AA0NT EM18 30
 TYPE2 <hashed> /09 30 ALT /Z
-TYPE3 <hashed> 6521 FN20AB 30
+TYPE3 <hashed> 6521 EM18IG 30
 ```
 
 JSON fields:
@@ -124,10 +124,10 @@ When no message type unpacks successfully, `--json` emits:
 Quiet output examples:
 
 ```text
-CORRELATED TYPE2 <hashed>/12 6521 FN20AB 30
-CORRELATED TYPE2 <hashed>/09 6521 FN20AB 30 ALT /Z
+CORRELATED TYPE2 <hashed>/12 6521 EM18IG 30
+CORRELATED TYPE2 <hashed>/09 6521 EM18IG 30 ALT /Z
 UNCORRELATED1 TYPE2 <hashed> /12 30
-UNCORRELATED2 TYPE3 <hashed> 6521 FN20AB 30
+UNCORRELATED2 TYPE3 <hashed> 6521 EM18IG 30
 ```
 
 Correlated JSON output:
@@ -140,7 +140,7 @@ Correlated JSON output:
   "is_partial": true,
   "has_hash": true,
   "has_ambiguity": false,
-  "locator": "FN20AB",
+  "locator": "EM18IG",
   "hash": 6521,
   "status": "CORRELATED"
 }
@@ -186,7 +186,7 @@ Overlap cases are observational, not failures.
 ## Reusable Library
 
 ```cpp
-auto encoded = wspr::encode_message("K1ABC", "FN20", 30);
+auto encoded = wspr::encode_message("AA0NT", "EM18", 30);
 ```
 
 ## Install
@@ -225,7 +225,7 @@ Minimal consumer:
 
 int main()
 {
-    const auto encoded = wspr::encode_message("K1ABC", "FN20", 30);
+    const auto encoded = wspr::encode_message("AA0NT", "EM18", 30);
     if (!encoded.ok)
         return 1;
 
