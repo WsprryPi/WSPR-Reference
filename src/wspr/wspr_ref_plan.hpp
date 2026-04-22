@@ -57,7 +57,7 @@ namespace wspr
         BareLongCallsignRequiresExplicitType3,
         UnsupportedCompoundCallsign,
         CompoundCallsignRequiresCorrelation,
-        PairedTransmissionRequiresExtendedIdentity,
+        PairedTransmissionUnavailable,
 
         AmbiguousType2Overlap,
 
@@ -248,8 +248,8 @@ namespace wspr
             return "CompoundCallsignRequiresCorrelation";
         case TransmissionPlanStatus::AmbiguousType2Overlap:
             return "AmbiguousType2Overlap";
-        case TransmissionPlanStatus::PairedTransmissionRequiresExtendedIdentity:
-            return "PairedTransmissionRequiresExtendedIdentity";
+        case TransmissionPlanStatus::PairedTransmissionUnavailable:
+            return "PairedTransmissionUnavailable";
         case TransmissionPlanStatus::InternalError:
             return "InternalError";
         }

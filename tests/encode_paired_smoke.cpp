@@ -3,6 +3,17 @@
 
 #include <iostream>
 #include <string>
+#include <vector>
+
+namespace
+{
+    struct EncodeFailureCase
+    {
+        std::string callsign;
+        std::string locator;
+        int power_dbm = 0;
+    };
+}
 
 int main()
 {
@@ -56,6 +67,29 @@ int main()
     {
         std::cerr << "One or both symbol streams are not 162 symbols long.\n";
         return 1;
+    }
+
+    const std::vector<EncodeFailureCase> failure_cases = {
+        {"<AA0NT>", "EM18IG", 20},
+        {"AA0NT", "EM18IG", 20},
+        {"W0/AA0NT", "EM18", 20},
+    };
+
+    for (const auto &tc : failure_cases)
+    {
+        const wspr::WsprEncodeResult failed =
+            wspr::encode_message(
+                tc.callsign,
+                tc.locator,
+                tc.power_dbm,
+                wspr::TransmissionPlanPreference::RequirePaired);
+
+        if (failed.ok)
+        {
+            std::cerr << "RequirePaired unexpectedly succeeded for "
+                      << tc.callsign << " " << tc.locator << "\n";
+            return 1;
+        }
     }
 
     std::cout << "Type: " << result.type << "\n";

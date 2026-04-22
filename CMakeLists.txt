@@ -182,6 +182,18 @@ add_executable(unpack_type2_matrix
 target_link_libraries(unpack_type2_matrix PRIVATE wspr_ref_lib)
 wspr_ref_target(unpack_type2_matrix)
 
+add_executable(callsign_locator_matrix
+    tests/callsign_locator_matrix.cpp
+)
+target_link_libraries(callsign_locator_matrix PRIVATE wspr_ref_lib)
+wspr_ref_target(callsign_locator_matrix)
+
+add_executable(type2_type3_paired_expected_behavior
+    tests/type2_type3_paired_expected_behavior.cpp
+)
+target_link_libraries(type2_type3_paired_expected_behavior PRIVATE wspr_ref_lib)
+wspr_ref_target(type2_type3_paired_expected_behavior)
+
 add_executable(unpack_type2_overlap_observation
     tests/unpack_type2_overlap_observation.cpp
 )

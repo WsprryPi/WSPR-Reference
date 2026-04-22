@@ -286,6 +286,18 @@ namespace wspr
                 return result;
             }
 
+            if (preference == TransmissionPlanPreference::RequirePaired)
+            {
+                return make_error_result(
+                    TransmissionPlanStatus::PairedTransmissionUnavailable,
+                    "RequirePaired cannot be satisfied for explicit Type 3 callsigns.",
+                    "Paired planning is only available for compound callsigns with a 6-character locator in the current design.",
+                    normalized_callsign,
+                    normalized_locator,
+                    power_dbm,
+                    preference);
+            }
+
             auto result = make_success_result(
                 TransmissionPlanType::Type3Single,
                 normalized_callsign,
@@ -335,6 +347,18 @@ namespace wspr
 
             if (normalized_locator.size() != 4)
             {
+                if (preference == TransmissionPlanPreference::RequirePaired)
+                {
+                    return make_error_result(
+                        TransmissionPlanStatus::PairedTransmissionUnavailable,
+                        "RequirePaired cannot be satisfied without a 6-character locator for a compound callsign.",
+                        "Paired planning is only available for compound callsigns with a 6-character locator in the current design.",
+                        normalized_callsign,
+                        normalized_locator,
+                        power_dbm,
+                        preference);
+                }
+
                 return make_error_result(
                     TransmissionPlanStatus::InvalidLocator,
                     "Compound callsigns require either a 4-character locator for single Type 2 or a 6-character locator for paired planning.",
@@ -366,11 +390,35 @@ namespace wspr
                     "Paired transmission was requested, but a 6-character locator is required to produce a paired Type 2 and Type 3 plan.";
             }
 
+            if (preference == TransmissionPlanPreference::RequirePaired)
+            {
+                return make_error_result(
+                    TransmissionPlanStatus::PairedTransmissionUnavailable,
+                    "RequirePaired cannot be satisfied for a compound callsign with a 4-character locator.",
+                    "Paired planning is only available for compound callsigns with a 6-character locator in the current design.",
+                    normalized_callsign,
+                    normalized_locator,
+                    power_dbm,
+                    preference);
+            }
+
             return result;
         }
 
         if (normalized_locator.size() == 6)
         {
+            if (preference == TransmissionPlanPreference::RequirePaired)
+            {
+                return make_error_result(
+                    TransmissionPlanStatus::PairedTransmissionUnavailable,
+                    "RequirePaired cannot be satisfied for a non-compound callsign with a 6-character locator.",
+                    "Paired planning is only available for compound callsigns with a 6-character locator in the current design.",
+                    normalized_callsign,
+                    normalized_locator,
+                    power_dbm,
+                    preference);
+            }
+
             auto result = make_error_result(
                 TransmissionPlanStatus::BareLongCallsignRequiresExplicitType3,
                 "Bare long callsigns must use explicit Type 3 form.",
@@ -412,10 +460,9 @@ namespace wspr
         if (preference == TransmissionPlanPreference::RequirePaired)
         {
             auto result = make_error_result(
-                TransmissionPlanStatus::PairedTransmissionRequiresExtendedIdentity,
-                "Paired transmission requires an extended or compound identity.",
-                "A plain Type 1 callsign with a 4-character locator cannot satisfy RequirePaired. "
-                "Use a compound Type 2 form or explicit Type 3 form with a 6-character locator.",
+                TransmissionPlanStatus::PairedTransmissionUnavailable,
+                "RequirePaired cannot be satisfied for a standard Type 1 callsign.",
+                "Paired planning is only available for compound callsigns with a 6-character locator in the current design.",
                 normalized_callsign,
                 normalized_locator,
                 power_dbm,
